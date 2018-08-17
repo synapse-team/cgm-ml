@@ -1,4 +1,4 @@
-README in progress, for now please refer to 
+README in progress, for now please refer to
 - info@childgrowthmonitor.org
 - [GitHub main project](https://github.com/Welthungerhilfe/ChildGrowthMonitor/)
 - [Child Growth Monitor Website](https://childgrowthmonitor.org)
@@ -23,7 +23,7 @@ You will need:
 #### Linux (Ubuntu)
 
 These steps provide an example installation on a local Ubuntu workstation from scratch:
-* Install Ubuntu Desktop 18.04.1 LTS	
+* Install Ubuntu Desktop 18.04.1 LTS
 * Install NVIDIA drivers  
 *Please note that after rebooting, the secure boot process will prompt you to authorize the driver to use the hardware via a MOK Management screen.*
 ```
@@ -83,11 +83,11 @@ Install `tensorflow-gpu` 1.1 via pip: https://www.tensorflow.org/versions/r1.1/i
 
 ### Dataset access
 Data access is provided on as-needed basis following signature of the Welthungerhilfe Data Privacy & Commitment to
-Maintain Data Secrecy Agreement. If you need data access (e.g. to train your machine learning models), 
+Maintain Data Secrecy Agreement. If you need data access (e.g. to train your machine learning models),
 please contact [Markus Matiaschek](mailto:mmatiaschek@gmail.com) for details.
 
 ### Preparing training data
-* Run the notebook `create_dataset.ipynb`
+* Run the script `python create_datasets.py`
 
 ### Training the models
 * Run the notebook `train_on_dataset.ipynb`
