@@ -90,7 +90,7 @@ please contact [Markus Matiaschek](mailto:mmatiaschek@gmail.com) for details.
 * Run the script `python create_datasets.py`
 
 ### Training the models
-* Run the notebook `train_on_dataset.ipynb`
+* Run the script `python train_nets.py`
 
 *This currently takes around 6 hours to run on a local NVIDIA GTX 1080 Ti.*
 
