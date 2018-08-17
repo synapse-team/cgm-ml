@@ -28,23 +28,27 @@ class CGMRegressor(object):
         self.voxel_size_meters = 0.1
 
 
-    def predict(self, X, features_names):
+    def predict(self, point_clouds, features_names):
 
-        # Reshape first.
-        points = np.reshape(X, (-1, 4))
+        # Turn pointclouds into a voxelgrids.
+        voxelgrids = []
+        for point_cloud in point_clouds:
+            dataframe = pd.DataFrame(point_cloud, columns=["x", "y", "z", "c"])
+            point_cloud = pyntcloud.PyntCloud(dataframe)
+            voxelgrid_id = point_cloud.add_structure("voxelgrid", size_x=self.voxel_size_meters, size_y=self.voxel_size_meters, size_z=self.voxel_size_meters)
+            voxelgrid = point_cloud.structures[voxelgrid_id].get_feature_vector(mode="density")
+            voxelgrid = utils.ensure_voxelgrid_shape(voxelgrid, (32, 32, 32))
+            voxelgrids.append(voxelgrid)
+        voxelgrids = np.array(voxelgrids)
+        print(voxelgrids.shape)
 
-        # Turn it into a voxelgrid.
-        dataframe = pd.DataFrame(points, columns=["x", "y", "z", "c"])
-        point_cloud = pyntcloud.PyntCloud(dataframe)
-        voxelgrid_id = point_cloud.add_structure("voxelgrid", size_x=self.voxel_size_meters, size_y=self.voxel_size_meters, size_z=self.voxel_size_meters)
-        voxelgrid = point_cloud.structures[voxelgrid_id].get_feature_vector(mode="density")
-
-        # Pad the voxelgrid.
-        voxelgrid = utils.ensure_voxelgrid_shape(voxelgrid, (32, 32, 32))
-        voxelgrid = np.expand_dims(voxelgrid, axis=0)
-
+        # Predict.
         with self.graph.as_default():
-            return self.model.predict(voxelgrid)
+            prediction =  self.model.predict(voxelgrids)
+            print(prediction)
+            prediction = np.mean(prediction, axis=0)
+            print(prediction)
+            return prediction
 
 
 # When using flask.
@@ -62,11 +66,12 @@ if __name__ == "__main__":
     def flask_post():
 
         r = request
-        points = np.fromstring(r.data, np.float32)
-        print("Received points", points.shape)
+        point_clouds = np.fromstring(r.data, np.float32)
+        point_clouds = np.reshape(point_clouds, (-1, 30000, 4))
+        print("Received:", point_clouds.shape)
 
         # Predict.
-        prediction = regressor.predict(points, [])[0]
+        prediction = regressor.predict(point_clouds, [])
 
         # Build the response.
         response = {
