@@ -18,6 +18,23 @@ You will need:
 * TensorFlow GPU
 * Keras
 
+### Create documentation
+Do this:
+
+```
+cd docs
+make html
+```
+Then open docs/build/html/index.html
+
+
+### Installation of cgmcore module.
+You can install the utilities as a module:
+
+```
+pip install git+https://github.com/Welthungerhilfe/cgm-ml.git
+```
+
 ### Installation
 
 #### Linux (Ubuntu)
@@ -96,6 +113,7 @@ please contact [Markus Matiaschek](mailto:mmatiaschek@gmail.com) for details.
 
 ### Evaluating the results
 TODO
+
 
 ## Contributing
 

@@ -6,6 +6,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   modelutils.rst
+   utils.rst
+   datagenerator.rst
 
 
 Indices and tables
@@ -14,4 +17,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
