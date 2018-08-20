@@ -34,11 +34,22 @@ def save_model_and_history(model, history, name):
 
     datetime_string = utils.get_datetime_string()
 
-    model_name = datetime_string + "-" + name + "-model.h5"
-    model_path = os.path.join(output_path, model_name)
-    model.save(model_path)
-    print("Saved model to" + model_name)
+    # Try to save model. Could fail.
+    try:
+        model_name = datetime_string + "-" + name + "-model.h5"
+        model_path = os.path.join(output_path, model_name)
+        model.save(model_path)
+        print("Saved model to" + model_name)
+    except Exception as e:
+        print("WARNING! Failed to save model. Use model-weights instead.")
 
+    # Save the model weights.
+    model_weights_name = datetime_string + "-" + name + "-model-weights.h5"
+    model_weights_path = os.path.join(output_path, model_weights_name)
+    model.save_weights(model_weights_path)
+    print("Saved model weights to" + model_name)
+
+    # Save the history.
     history_name = datetime_string + "-" + name + "-history.p"
     history_path = os.path.join(output_path, history_name)
     pickle.dump(history.history, open(history_path, "wb"))
@@ -72,9 +83,9 @@ def train_voxnet():
 
     # Train the model.
     history = model_voxnet.fit(
-        x_input_train[0:1], y_output_train[0:1],
-        epochs=2,
-        validation_data=(x_input_test[0:1], y_output_test[0:1]),
+        x_input_train, y_output_train,
+        epochs=100,
+        validation_data=(x_input_test, y_output_test),
         callbacks=[tensorboard_callback]
         )
 
@@ -126,9 +137,9 @@ def train_pointnet():
 
     # Train the model.
     history = model_pointnet.fit(
-        x_input_train[0:1], y_output_train[0:1],
-        epochs=2,
-        validation_data=(x_input_test[0:1], y_output_test[0:1]),
+        x_input_train, y_output_train,
+        epochs=100,
+        validation_data=(x_input_test, y_output_test),
         callbacks=[tensorboard_callback],
         batch_size=4
         )
@@ -141,11 +152,13 @@ train_voxnet()
 train_pointnet()
 
 def plot_histories(histories, names):
-    for index, (history, name) in enumerate(histories_items):
+    for index, (history, name) in enumerate(histories.items()):
         for key, data in history.history.items():
             plt.plot(data, label=name + "-" + key)
 
-    # TODO consider: plt.savefig()
+    fig_name = utils.get_datetime_string() + "-histories.png"
+    fig_path = os.path.join(output_path, fig_name)
+    plt.savefig(fig_path)
     plt.show()
     plt.close()
 
