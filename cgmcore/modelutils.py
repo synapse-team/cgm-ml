@@ -1,8 +1,26 @@
+"""
+Helper module for instaniating some Neural Networks.
+"""
+
 from keras import models, layers
+from keras import backend as K
 import numpy as np
 import tensorflow as tf
 
+
 def create_dense_model(input_shape, output_size):
+    """
+    Creates a simple dense model.
+
+    Note: This is only suitable for baseling.
+
+    Args:
+        input_shape (shape): Input-shape.
+        output_size (int): Output-size.
+
+    Returns:
+        Model: A model.
+    """
 
     model = models.Sequential(name="baseline-dense")
     model.add(layers.Flatten(input_shape=input_shape))
@@ -14,7 +32,18 @@ def create_dense_model(input_shape, output_size):
 
 
 def create_voxnet_model_small(input_shape, output_size):
-    """ See: http://dimatura.net/publications/3dcnn_lz_maturana_scherer_icra15.pdf """
+    """
+    Creates a small VoxNet.
+
+    See: http://dimatura.net/publications/3dcnn_lz_maturana_scherer_icra15.pdf
+
+    Args:
+        input_shape (shape): Input-shape.
+        output_size (int): Output-size.
+
+    Returns:
+        Model: A model.
+    """
 
     #Trainable params: 301,378
     model = models.Sequential(name="C7-F32-P2-C5-F64-P2-D512")
@@ -31,7 +60,18 @@ def create_voxnet_model_small(input_shape, output_size):
 
 
 def create_voxnet_model_big(input_shape, output_size):
-    """ See: http://dimatura.net/publications/3dcnn_lz_maturana_scherer_icra15.pdf """
+    """
+    Creates a big VoxNet.
+
+    See: http://dimatura.net/publications/3dcnn_lz_maturana_scherer_icra15.pdf
+
+    Args:
+        input_shape (shape): Input-shape.
+        output_size (int): Output-size.
+
+    Returns:
+        Model: A model.
+    """
 
     # Trainable params: 7,101,442
     model = models.Sequential(name="C7-F64-P4-D512")
@@ -46,7 +86,20 @@ def create_voxnet_model_big(input_shape, output_size):
 
 
 def create_voxnet_model_homepage(input_shape, output_size):
-    """ See: http://dimatura.net/publications/3dcnn_lz_maturana_scherer_icra15.pdf """
+    """
+    Creates a small VoxNet.
+
+    See: http://dimatura.net/publications/3dcnn_lz_maturana_scherer_icra15.pdf
+
+    Note: This is the latest model that the VoxNet-authors used.
+
+    Args:
+        input_shape (shape): Input-shape.
+        output_size (int): Output-size.
+
+    Returns:
+        Model: A model.
+    """
 
     # Trainable params: 916,834
     model = models.Sequential(name="VoxNetHomepage")
@@ -62,9 +115,24 @@ def create_voxnet_model_homepage(input_shape, output_size):
 
 
 def create_point_net(input_shape, output_size):
-    """ See https://github.com/garyloveavocado/pointnet-keras/blob/master/train_cls.py """
+    """
+    Creates a PointNet.
+
+    See https://github.com/garyloveavocado/pointnet-keras/blob/master/train_cls.py
+
+    Args:
+        input_shape (shape): Input-shape.
+        output_size (int): Output-size.
+
+    Returns:
+        Model: A model.
+    """
 
     num_points = input_shape[0]
+
+    def mat_mul(A, B):
+        result = tf.matmul(A, B)
+        return result
 
     input_points = layers.Input(shape=input_shape)
     x = layers.Convolution1D(64, 1, activation='relu',
@@ -129,6 +197,3 @@ def create_point_net(input_shape, output_size):
 
     model = models.Model(inputs=input_points, outputs=prediction)
     return model
-
-def mat_mul(A, B):
-    return tf.matmul(A, B)
