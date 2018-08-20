@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 import numpy as np
 import glob2
@@ -10,7 +11,7 @@ import matplotlib.pyplot as plt
 import multiprocessing as mp
 import uuid
 import pickle
-import utils
+from . import utils
 
 
 class DataGenerator(object):

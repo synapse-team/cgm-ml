@@ -158,7 +158,7 @@ def get_latest_preprocessed_dataset(path=".", filter=""):
     glob_search_path = os.path.join(path, "*.p")
     paths = [x for x in glob.glob(glob_search_path) if filter in x]
     if len(paths) == 0:
-        raise Exception("No datasets found for filter", filter)
+        raise Exception("No datasets found for filter " + filter + " at path " + os.path.abspath(path))
     return sorted(paths)[-1]
 
 
@@ -169,5 +169,5 @@ def get_latest_model(path=".", filter=""):
     glob_search_path = os.path.join(path, "*.h5")
     paths = [x for x in glob.glob(glob_search_path) if filter in x]
     if len(paths) == 0:
-        raise Exception("No models found for filter", filter)
+        raise Exception("No models found for filter " + filter + " at path " + os.path.abspath(path))
     return sorted(paths)[-1]

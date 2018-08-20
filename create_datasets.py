@@ -1,10 +1,10 @@
 # Dataset-Generator.
 import os
-import datagenerator
-from datagenerator import DataGenerator, get_dataset_path, create_datagenerator_from_parameters
+#from cgmcore import datagenerator
+from cgmcore.datagenerator import DataGenerator, get_dataset_path, create_datagenerator_from_parameters
+from cgmcore import utils
 import pickle
 import random
-import utils
 import sys
 import multiprocessing
 

@@ -1,5 +1,5 @@
-import modelutils
-import utils
+from cgmcore import modelutils
+from cgmcore import utils
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,9 +11,9 @@ import os
 
 
 # Finding the latest dataset-paths.
-dataset_name_voxelgrid = utils.get_latest_preprocessed_dataset(filter="voxelgrid-dataset")
+dataset_name_voxelgrid = utils.get_latest_preprocessed_dataset(path="datasets", filter="voxelgrid-dataset")
 print(dataset_name_voxelgrid)
-dataset_name_pointcloud = utils.get_latest_preprocessed_dataset(filter="pointcloud-dataset")
+dataset_name_pointcloud = utils.get_latest_preprocessed_dataset(path="datasets", filter="pointcloud-dataset")
 print(dataset_name_pointcloud)
 
 # Output path. Ensure its existence.
