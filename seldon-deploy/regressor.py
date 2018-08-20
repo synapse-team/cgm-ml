@@ -3,6 +3,7 @@ from __future__ import absolute_import
 # For importing stuff. Relative imports.
 import sys
 sys.path.append("..")
+sys.path.append("../cgmcore")
 
 import utils
 from keras.models import load_model
@@ -24,7 +25,7 @@ class CGMRegressor(object):
 
 
     def __init__(self):
-        model_path = utils.get_latest_model("..", "voxnet")
+        model_path = utils.get_latest_model("../models", "voxnet")
         print(model_path)
 
         self.model = load_model(model_path)
