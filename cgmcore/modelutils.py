@@ -8,6 +8,21 @@ import numpy as np
 import tensorflow as tf
 
 
+def create_sequence_model(base_model, sequence_length, input_shape, output_size):
+
+    assert base_model == "voxnet" or base_model == "pointnet"
+
+    if base_model == "voxnet":
+        base_model = create_voxnet_model_homepage(input_shape, output_size)
+    elif base_model == "pointnet":
+        base_model = create_point_net(input_shape, output_size)
+
+    model = models.Sequential()
+    model.add(layers.TimeDistributed(base_model, input_shape=(sequence_length,) + input_shape))
+    model.add(layers.LSTM(8, activation="relu"))
+    return model
+
+
 def create_dense_model(input_shape, output_size):
     """
     Creates a simple dense model.

@@ -3,11 +3,9 @@ from cgmcore import modelutils
 import os
 import tensorflow as tf
 
-setattr(tf.matmul, '__shallowcopy__', lambda self, _: self)
-
-
 class TestModels(unittest.TestCase):
 
+    #@unittest.skip("demonstrating skipping")
     def test_networks(self):
         """
         Tests all models.
@@ -36,6 +34,27 @@ class TestModels(unittest.TestCase):
             model.save_weights(model_weights_path)
             model = create_model(input_shape, output_size)
             model.load_weights(model_weights_path)
+
+
+    def test_sequence_networks(self):
+
+        model = modelutils.create_sequence_model(
+            base_model="voxnet",
+            sequence_length=8,
+            input_shape=(32, 32, 32),
+            output_size = 2
+            )
+        print(model.inputs[0].shape)
+        model.summary()
+
+        model = modelutils.create_sequence_model(
+            base_model="pointnet",
+            sequence_length=8,
+            input_shape=(30000, 3),
+            output_size = 2
+            )
+        print(model.inputs[0].shape)
+        model.summary()
 
 
 if __name__ == '__main__':
