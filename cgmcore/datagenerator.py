@@ -24,6 +24,7 @@ class DataGenerator(object):
         dataset_path,
         input_type,
         output_targets,
+        sequence_length=0,
         image_target_shape=(160, 90),
         voxelgrid_target_shape=(32, 32, 32),
         voxel_size_meters=0.01,
@@ -38,6 +39,7 @@ class DataGenerator(object):
             dataset_path (string): Where the raw data is.
             input_type (string): Specifies how the input-data for the Neural Network looks like. Either 'image', 'pointcloud', 'voxgrid'.
             output_targets (list of strings): A list of targets for the Neural Network. For example *['height', 'weight']*.
+            sequence_length (int): Specifies the lenght of the sequences. 0 would yield no sequence at all.
             image_target_shape (2D tuple of ints): Target shape of the images.
             voxelgrid_target_shape (3D tuple of ints): Target shape of the voxelgrids.
             voxel_size_meters (float): Size of the voxels. That is, edge length.
@@ -60,6 +62,7 @@ class DataGenerator(object):
         self.dataset_path = dataset_path
         self.input_type = input_type
         self.output_targets = output_targets
+        self.sequence_length = sequence_length
         self.image_target_shape = image_target_shape
         self.voxelgrid_target_shape = voxelgrid_target_shape
         self.voxel_size_meters = voxel_size_meters
@@ -88,7 +91,6 @@ class DataGenerator(object):
         # Find all QR-codes.
         self._find_qrcodes()
         assert self.qrcodes != [], "No QR-codes found!"
-
 
         # Create the QR-codes dictionary.
         self._create_qrcodes_dictionary()
@@ -696,6 +698,7 @@ def test_parameters():
 
     print("Done.")
 
+
 def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, output_queue):
     if verbose == True:
         print("Generating using QR-codes:", qrcodes_to_use)
@@ -723,44 +726,22 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
         y_output = None
         file_path = None
 
-        # Get a random image.
-        if class_self.input_type == "image":
-            if len(jpg_paths) == 0:
-                continue
-            jpg_path = random.choice(jpg_paths)
-            image = class_self._load_image(jpg_path)
-            file_path = jpg_path
-            x_input = image
+        # Get the input. Not dealing with sequences.
+        if class_self.sequence_length == 0:
+            x_input, file_path = get_input(class_self, jpg_paths, pcd_paths)
 
-        # Get a random voxelgrid.
-        elif class_self.input_type == "voxelgrid":
-            if len(pcd_paths) == 0:
-                continue
-            pcd_path = random.choice(pcd_paths)
-            try:
-                voxelgrid = class_self._load_voxelgrid(pcd_path)
-                file_path = pcd_path
-                x_input = voxelgrid
-            except Exception as e:
-                print(e)
-                continue
-
-        # Get a random pointcloud.
-        elif class_self.input_type == "pointcloud":
-            if len(pcd_paths) == 0:
-                continue
-            pcd_path = random.choice(pcd_paths)
-            try:
-                pointcloud = class_self._load_pointcloud(pcd_path)
-                file_path = pcd_path
-                x_input = pointcloud
-            except Exception as e:
-                print(e)
-                continue
-
-        # Should not happen.
+        # Get the input. Dealing with sequences here.
         else:
-            raise Exception("Unknown input_type: " + input_type)
+            count = 0
+            x_input, file_path = [], []
+            while count != class_self.sequence_length:
+                x, f = get_input(class_self, jpg_paths, pcd_paths)
+                if x is not None and f is not None:
+                    x_input.append(x)
+                    file_path.append(f)
+                    count += 1
+            x_input = np.array(x_input)
+            file_path = np.array(file_path)
 
         # Set the output.
         y_output = targets
@@ -769,7 +750,7 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
         if x_input is not None and y_output is not None and file_path is not None:
             x_inputs.append(x_input)
             y_outputs.append(y_output)
-            file_paths.append(pcd_path)
+            file_paths.append(file_path)
 
         if verbose == True:
             bar.update(len(x_inputs))
@@ -798,20 +779,70 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
         return return_values
 
 
+def get_input(class_self, jpg_paths, pcd_paths):
+    # Get a random image.
+    if class_self.input_type == "image":
+        if len(jpg_paths) == 0:
+            print("777")
+            return None, None
+        jpg_path = random.choice(jpg_paths)
+        image = class_self._load_image(jpg_path)
+        file_path = jpg_path
+        x_input = image
+
+    # Get a random voxelgrid.
+    elif class_self.input_type == "voxelgrid":
+        if len(pcd_paths) == 0:
+            print("787")
+            return None, None
+        pcd_path = random.choice(pcd_paths)
+        try:
+            voxelgrid = class_self._load_voxelgrid(pcd_path)
+            file_path = pcd_path
+            x_input = voxelgrid
+        except Exception as e:
+            print(e)
+            print("796")
+            return None, None
+
+    # Get a random pointcloud.
+    elif class_self.input_type == "pointcloud":
+        if len(pcd_paths) == 0:
+            print("802")
+            return None, None
+        pcd_path = random.choice(pcd_paths)
+        try:
+            pointcloud = class_self._load_pointcloud(pcd_path)
+            file_path = pcd_path
+            x_input = pointcloud
+        except Exception as e:
+            print(e)
+            print("811")
+            return None, None
+
+    # Should not happen.
+    else:
+        raise Exception("Unknown input_type: " + input_type)
+
+    return x_input, file_path
+
+
 def create_datagenerator_from_parameters(dataset_path, dataset_parameters):
     print("Creating data-generator...")
     datagenerator = DataGenerator(
         dataset_path=dataset_path,
         input_type=dataset_parameters["input_type"],
         output_targets=dataset_parameters["output_targets"],
+        sequence_length=dataset_parameters.get("sequence_length", 0),
         voxelgrid_target_shape=dataset_parameters.get("voxelgrid_target_shape", None),
         voxel_size_meters=dataset_parameters.get("voxel_size_meters", None),
         voxelgrid_random_rotation=dataset_parameters.get("voxelgrid_random_rotation", None),
         pointcloud_target_size=dataset_parameters.get("pointcloud_target_size", None),
         pointcloud_random_rotation=dataset_parameters.get("pointcloud_random_rotation", None)
     )
-    datagenerator.print_statistics()
+    #datagenerator.print_statistics()
     return datagenerator
+
 
 def get_dataset_path():
     if os.path.exists("datasetpath.txt"):
