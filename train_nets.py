@@ -27,6 +27,9 @@ pp = pprint.PrettyPrinter(indent=4)
 tensorboard_callback = callbacks.TensorBoard()
 histories = {}
 
+# Hyperparameters.
+epochs = 25
+
 # Method for saving model and history.
 def save_model_and_history(model, history, name):
 
@@ -84,7 +87,7 @@ def train_voxnet():
     # Train the model.
     history = model_voxnet.fit(
         x_input_train, y_output_train,
-        epochs=100,
+        epochs=epochs,
         validation_data=(x_input_test, y_output_test),
         callbacks=[tensorboard_callback]
         )
@@ -138,7 +141,7 @@ def train_pointnet():
     # Train the model.
     history = model_pointnet.fit(
         x_input_train, y_output_train,
-        epochs=100,
+        epochs=epochs,
         validation_data=(x_input_test, y_output_test),
         callbacks=[tensorboard_callback],
         batch_size=4

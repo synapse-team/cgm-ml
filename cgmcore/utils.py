@@ -3,11 +3,13 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import itertools
 import datetime
-import vtk
 from mpl_toolkits.mplot3d import Axes3D
 import glob
 import os
-
+try:
+    import vtk
+except Exception as e:
+    print("WARNING! VTK not available. This might limit the functionality.") 
 
 def load_vtk(vtk_path):
     """
