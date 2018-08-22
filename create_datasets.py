@@ -27,23 +27,25 @@ print("Using output path:", output_path)
 # For creating pointclouds.
 dataset_parameters_pointclouds = {}
 dataset_parameters_pointclouds["input_type"] = "pointcloud"
-dataset_parameters_pointclouds["output_targets"] = ["height", "weight"]
+dataset_parameters_pointclouds["output_targets"] = ["height"]
 dataset_parameters_pointclouds["random_seed"] = 666
 dataset_parameters_pointclouds["pointcloud_target_size"] = 30000
 dataset_parameters_pointclouds["pointcloud_random_rotation"] = True
-dataset_parameters_pointclouds["dataset_size_train"] = 1000
-dataset_parameters_pointclouds["dataset_size_test"] = 200
+dataset_parameters_pointclouds["dataset_size_train"] = 1000 // 100
+dataset_parameters_pointclouds["dataset_size_test"] = 200 // 100
+dataset_parameters_pointclouds["sequence_length"] = 4
 
 # For creating voxelgrids.
 dataset_parameters_voxelgrids = {}
 dataset_parameters_voxelgrids["input_type"] = "voxelgrid"
-dataset_parameters_voxelgrids["output_targets"] = ["height", "weight"]
+dataset_parameters_voxelgrids["output_targets"] = ["height"]
 dataset_parameters_voxelgrids["random_seed"] = 666
 dataset_parameters_voxelgrids["voxelgrid_target_shape"] = (32, 32, 32)
 dataset_parameters_voxelgrids["voxel_size_meters"] = 0.1
 dataset_parameters_voxelgrids["voxelgrid_random_rotation"] = True
-dataset_parameters_voxelgrids["dataset_size_train"] = 6000
-dataset_parameters_voxelgrids["dataset_size_test"] = 1000
+dataset_parameters_voxelgrids["dataset_size_train"] = 6000 // 100
+dataset_parameters_voxelgrids["dataset_size_test"] = 1000 // 100
+dataset_parameters_voxelgrids["sequence_length"] = 4
 
 # Define which parameters to use.
 dataset_parameters_to_use = []

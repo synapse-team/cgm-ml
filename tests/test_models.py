@@ -36,13 +36,15 @@ class TestModels(unittest.TestCase):
             model.load_weights(model_weights_path)
 
 
-    def test_sequence_networks(self):
+    #@unittest.skip("demonstrating skipping")
+    def test_sequence_networks_lstm(self):
 
         model = modelutils.create_sequence_model(
             base_model="voxnet",
             sequence_length=8,
             input_shape=(32, 32, 32),
-            output_size = 2
+            output_size = 2,
+            use_lstm=True
             )
         print(model.inputs[0].shape)
         model.summary()
@@ -51,11 +53,33 @@ class TestModels(unittest.TestCase):
             base_model="pointnet",
             sequence_length=8,
             input_shape=(30000, 3),
-            output_size = 2
+            output_size = 2,
+            use_lstm=True
             )
         print(model.inputs[0].shape)
         model.summary()
 
+    def test_sequence_networks_no_lstm(self):
+
+        model = modelutils.create_sequence_model(
+            base_model="voxnet",
+            sequence_length=8,
+            input_shape=(32, 32, 32),
+            output_size = 2,
+            use_lstm=False
+            )
+        print(model.inputs[0].shape)
+        model.summary()
+
+        model = modelutils.create_sequence_model(
+            base_model="pointnet",
+            sequence_length=8,
+            input_shape=(30000, 3),
+            output_size = 2,
+            use_lstm=False
+            )
+        print(model.inputs[0].shape)
+        model.summary()
 
 if __name__ == '__main__':
     unittest.main()

@@ -8,7 +8,7 @@ import numpy as np
 import tensorflow as tf
 
 
-def create_sequence_model(base_model, sequence_length, input_shape, output_size):
+def create_sequence_model(base_model, sequence_length, input_shape, output_size, use_lstm):
 
     assert base_model == "voxnet" or base_model == "pointnet"
 
@@ -19,7 +19,13 @@ def create_sequence_model(base_model, sequence_length, input_shape, output_size)
 
     model = models.Sequential()
     model.add(layers.TimeDistributed(base_model, input_shape=(sequence_length,) + input_shape))
-    model.add(layers.LSTM(8, activation="relu"))
+    if use_lstm == True:
+        model.add(layers.LSTM(8, activation="relu"))
+    else:
+        model.add(layers.AveragePooling1D(sequence_length))
+        model.add(layers.Flatten())
+    model.add(layers.Dense(output_size))
+
     return model
 
 

@@ -427,8 +427,8 @@ class DataGenerator(object):
                 for output_path in output_paths:
                     # Read data from file and delete it.
                     result_values = pickle.load(open(output_path, "rb"))
-                    assert result_values[0] != []
-                    assert result_values[1] != []
+                    assert len(result_values[0]) > 0
+                    assert len(result_values[1]) > 0
                     os.remove(output_path)
 
                     # Gather the data into arrays.
@@ -721,6 +721,10 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
             continue
         targets, jpg_paths, pcd_paths = random.choice(class_self.qrcodes_dictionary[qrcode])
 
+        # No pointclouds.
+        if len(pcd_paths) == 0:
+            continue
+
         # Get a sample.
         x_input = None
         y_output = None
@@ -746,11 +750,15 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
         # Set the output.
         y_output = targets
 
+
         # Got a proper sample.
         if x_input is not None and y_output is not None and file_path is not None:
             x_inputs.append(x_input)
             y_outputs.append(y_output)
             file_paths.append(file_path)
+
+        assert len(x_inputs) == len(y_outputs)
+        assert len(y_outputs) == len(file_paths)
 
         if verbose == True:
             bar.update(len(x_inputs))
@@ -758,13 +766,16 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
     if verbose == True:
         bar.finish()
 
+    assert len(x_inputs) == size
+    assert len(y_outputs) == size
+
     # Turn everything into ndarrays.
     x_inputs = np.array(x_inputs)
     y_outputs = np.array(y_outputs)
 
     # Prepare result values.
-    assert x_inputs != []
-    assert y_outputs != []
+    assert len(x_inputs) == size
+    assert len(y_outputs) == size
     if yield_file_paths == False:
         return_values =  (x_inputs, y_outputs)
     else:
@@ -793,7 +804,6 @@ def get_input(class_self, jpg_paths, pcd_paths):
     # Get a random voxelgrid.
     elif class_self.input_type == "voxelgrid":
         if len(pcd_paths) == 0:
-            print("787")
             return None, None
         pcd_path = random.choice(pcd_paths)
         try:
@@ -802,13 +812,11 @@ def get_input(class_self, jpg_paths, pcd_paths):
             x_input = voxelgrid
         except Exception as e:
             print(e)
-            print("796")
             return None, None
 
     # Get a random pointcloud.
     elif class_self.input_type == "pointcloud":
         if len(pcd_paths) == 0:
-            print("802")
             return None, None
         pcd_path = random.choice(pcd_paths)
         try:
@@ -817,7 +825,6 @@ def get_input(class_self, jpg_paths, pcd_paths):
             x_input = pointcloud
         except Exception as e:
             print(e)
-            print("811")
             return None, None
 
     # Should not happen.
