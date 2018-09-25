@@ -2,7 +2,7 @@ import logging
 import os
 import glob2
 import json
-import utils as etl_utils
+import etl.utils as etl_utils
 
 log = logging.getLogger(__name__)
 

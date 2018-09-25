@@ -7,7 +7,7 @@ import logging
 import os
 import glob2
 import json
-from .data_reader import DataReader
+from etl.data_reader import DataReader
 import configparser
 
 
