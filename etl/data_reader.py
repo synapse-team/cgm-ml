@@ -110,9 +110,12 @@ class DataReader:
         """
 
         qrcodes_dictionary = {}
+        log.info("inside create_qrcodes_dictionary ")
+        log.info("Total number of json paths measures %d" % len(self.json_paths_measures))
 
         # Go thorugh all measures.
         for json_path_measure in self.json_paths_measures:
+            log.info("Processing json path measure file %s" % str(json_path_measure))
             # Load the data and get type.
             json_data_measure = json.load(open(json_path_measure))
             measure_type = json_data_measure["type"]["value"]
@@ -125,7 +128,7 @@ class DataReader:
             qrcode = self._extract_qrcode(json_data_measure)
             if qrcode is None:
                 continue
-            log.debug("Extracted qr code %s" % str(qrcode))
+            log.info("Extracted qr code %s" % str(qrcode))
 
             # Create an array in the dictionary if necessary.
             if qrcode not in qrcodes_dictionary.keys():
