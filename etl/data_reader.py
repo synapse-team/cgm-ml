@@ -74,7 +74,7 @@ class DataReader:
         person_id = json_data_measure["personId"]["value"]
         log.debug("Processing person id %s" % str(person_id))
         json_path_personal = [json_path for json_path in self.json_paths_personal if person_id in json_path]
-        log.debug("Json path personal for person %s = %s" % (person_id, str(json_data_personal)))
+        log.debug("Json path personal for person %s = %s" % (person_id, str(json_path_personal)))
         #assert len(json_path_personal) == 1
         if len(json_path_personal) == 0:
             log.warning("Cannot create json path personal for person %s " % person_id)
