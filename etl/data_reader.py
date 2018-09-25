@@ -58,6 +58,8 @@ class DataReader:
             with open(json_path_measure) as json_path_measure_file:
                 json_data_measure = json.load(json_path_measure_file)
                 qrcode = self._extract_qrcode(json_data_measure)
+                if qrcode is None:
+                    continue
                 qrcodes.append(qrcode)
 
         # Provide a sorted set.
@@ -70,8 +72,15 @@ class DataReader:
         Extracts a QR-code from a JSON.
         """
         person_id = json_data_measure["personId"]["value"]
+        log.debug("Processing person id %s" % str(person_id))
         json_path_personal = [json_path for json_path in self.json_paths_personal if person_id in json_path]
-        assert len(json_path_personal) == 1
+        log.debug("Json path personal for person %s = %s" % (person_id, str(json_data_personal)))
+        #assert len(json_path_personal) == 1
+        if len(json_path_personal) == 0:
+            log.warning("Cannot create json path personal for person %s " % person_id)
+            return None
+        if len(json_path_personal) > 1:
+            log.warning("More than 1 json path personal for person %s" % person_id)
         json_path_personal = json_path_personal[0]
         json_data_personal_file = open(json_path_personal)
         json_data_personal = json.load(json_data_personal_file)
@@ -114,7 +123,8 @@ class DataReader:
 
             # Extract the QR-code.
             qrcode = self._extract_qrcode(json_data_measure)
-
+            if qrcode is None:
+                continue
             log.debug("Extracted qr code %s" % str(qrcode))
 
             # Create an array in the dictionary if necessary.
