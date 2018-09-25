@@ -115,6 +115,8 @@ class DataReader:
             # Extract the QR-code.
             qrcode = self._extract_qrcode(json_data_measure)
 
+            log.debug("Extracted qr code %s" % str(qrcode))
+
             # Create an array in the dictionary if necessary.
             if qrcode not in qrcodes_dictionary.keys():
                 qrcodes_dictionary[qrcode] = []
@@ -130,7 +132,9 @@ class DataReader:
             jpg_paths = [jpg_path for jpg_path in self.jpg_paths if etl_utils.is_matching_measurement(jpg_path, qrcode, timestamp)]
             pcd_paths = [pcd_path for pcd_path in self.pcd_paths if etl_utils.is_matching_measurement(pcd_path, qrcode, timestamp)]
             if len(pcd_paths) == 0:
+                log.warning("Ignoring qr code %s as pcd paths are empty" % str(qrcode))
                 continue
+
             qrcodes_dictionary[qrcode].append((targets, jpg_paths, pcd_paths))
 
         return qrcodes_dictionary
