@@ -16,8 +16,8 @@ class DataReader:
         self.dataset_path = dataset_path
         self.output_targets = output_targets
         self._get_paths()
-        self.qrcodes = self.find_qrcodes()
-        self.qrcodes_dictionary = self._create_qrcodes_dictionary()
+        #self.qrcodes = self.find_qrcodes()
+        #self.qrcodes_dictionary = self._create_qrcodes_dictionary()
 
     def _get_jpg_paths(self):
         glob_search_path = os.path.join(self.dataset_path, "storage/person", "**/*.jpg")
@@ -90,7 +90,7 @@ class DataReader:
             targets.append(value)
         return targets
 
-    def _create_qrcodes_dictionary(self):
+    def create_qrcodes_dictionary(self):
         """
         Creates a QR-Code-dictionary.
 

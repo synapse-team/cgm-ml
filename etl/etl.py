@@ -7,6 +7,9 @@ import logging
 import os
 import glob2
 import json
+from .data_reader import DataReader
+import configparser
+
 
 log = logging.getLogger(__name__)
 
@@ -19,18 +22,25 @@ class ETL:
         """
         read parameters from config file for pointcloud or voxelgrid
         """
-        pass
+        self.config = configparser.ConfigParser()
+        self.data_reader = None
+
+    def initialize(self, config_path):
+        self.config.read(config_path)
+        dataset_path = self.config['DataReader']['dataset_path']
+        output_targets = self.config['DataReader']['output_targets'].split(',')
+        self.data_reader = DataReader(dataset_path, output_targets)
 
     def run(self):
-        # create configuration object
-        # use data reader to make qrcode dictionary
-        # iterate over each qr code, creating the pickle for each datapoint
-        # merge all data and push to cloud bucket
-        # TODO: questions
-        # 1. each qrcode produces the following output: x-input, y-output and filepath
-        # and they are converted to ndarray and merged together to a big pickle file
-        # For ETL, we should avoid using pickle. also, loading everything in memory will not be feasible in the future
-        # esp during ETL.
-        # So what format of data makes sense during ETL ?
-        # A text file with format: qrcode | X path | target ?
-        pass
+        log.info("ETL: RUN")
+        log.info("Create qr code dictionary")
+        qrcode_dict = self.data_reader.create_qrcodes_dictionary()
+        log.info("Created qr code dictionary. Number of qr codes = %d" % len(qrcode_dict))
+        # push each qr code to a queue
+        # process each qr code, sending the output to the writer
+        # writer creates the necessary files (h5)
+
+
+
+
+
