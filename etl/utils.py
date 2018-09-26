@@ -16,7 +16,8 @@ def extract_timestamp_from_path(file_path):
         log.debug("Extracted timestamp %s from file %s" % (timestamp, file_path))
         #assert len(timestamp) == 13, len(timestamp)
         #assert timestamp.isdigit()
-        return timestamp
+        if not timestamp.isdigit():
+            return None
     except Exception as e:
         log.exception("Unable to extract timestamp")
     finally:
