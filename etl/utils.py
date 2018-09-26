@@ -9,7 +9,6 @@ def extract_timestamp_from_path(file_path):
     """
     Extracts a timestamp from a path.
     """
-    timestamp = None
     try:
         log.debug("Extracting timestamp from file %s" % file_path)
         timestamp = file_path.split(os.sep)[-1].split("_")[2]
@@ -18,10 +17,10 @@ def extract_timestamp_from_path(file_path):
         #assert timestamp.isdigit()
         if not timestamp.isdigit():
             return None
+        return timestamp
     except Exception as e:
         log.exception("Unable to extract timestamp")
-    finally:
-        return timestamp
+        return None
 
 
 def is_matching_measurement(path,
