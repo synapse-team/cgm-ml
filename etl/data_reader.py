@@ -96,11 +96,16 @@ class DataReader:
         if len(json_path_personal) > 1:
             log.warning("More than 1 json path personal for person %s" %
                         person_id)
+
         json_path_personal = json_path_personal[0]
-        json_data_personal_file = open(json_path_personal)
-        json_data_personal = json.load(json_data_personal_file)
-        json_data_personal_file.close()
+        try:
+            json_data_personal = json.load(open(json_path_personal))
+        except Exception:
+            log.exception("Unable to json load file %s" % json_path_personal)
+            return None
+
         qrcode = json_data_personal["qrcode"]["value"]
+
         return qrcode
 
     def _extract_targets(self, json_data_measure):
