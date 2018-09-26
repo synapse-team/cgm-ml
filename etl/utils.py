@@ -1,17 +1,26 @@
 import os
 import numpy as np
+import logging
+
+log = logging.getLogger(__name__)
+
 
 def extract_timestamp_from_path(file_path):
     """
     Extracts a timestamp from a path.
     """
+    log.info("Extracting timestamp from file %s" % file_path)
     timestamp = file_path.split(os.sep)[-1].split("_")[2]
-    assert len(timestamp) == 13, len(timestamp)
-    assert timestamp.isdigit()
+    log.info("Extracted timestamp %s from file %s" % (timestamp, file_path))
+    #assert len(timestamp) == 13, len(timestamp)
+    #assert timestamp.isdigit()
     return timestamp
 
 
-def is_matching_measurement(path, qrcode, timestamp, threshold=(60 * 60 * 24 * 1000)):
+def is_matching_measurement(path,
+                            qrcode,
+                            timestamp,
+                            threshold=(60 * 60 * 24 * 1000)):
     """
     Returns True if timetamps match.
 
@@ -43,19 +52,20 @@ def is_matching_measurement(path, qrcode, timestamp, threshold=(60 * 60 * 24 * 1
         return False
     return True
 
+
 def _rotate_point_cloud(point_cloud):
 
     rotation_angle = np.random.uniform() * 2 * np.pi
     cosval = np.cos(rotation_angle)
     sinval = np.sin(rotation_angle)
-    rotation_matrix = np.array([[cosval, sinval, 0],
-                                    [-sinval, cosval, 0],
-                                    [0, 0, 1]])
+    rotation_matrix = np.array([[cosval, sinval, 0], [-sinval, cosval, 0],
+                                [0, 0, 1]])
 
     rotated_data = np.zeros(point_cloud.shape, dtype=np.float32)
     for k in range(point_cloud.shape[0]):
 
         shape_pc = point_cloud[k, ...]
-        rotated_data[k, ...] = np.dot(shape_pc.reshape((-1, 3)), rotation_matrix)
+        rotated_data[k, ...] = np.dot(
+            shape_pc.reshape((-1, 3)), rotation_matrix)
 
     return rotated_data

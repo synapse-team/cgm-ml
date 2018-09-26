@@ -12,6 +12,7 @@ class DataReader:
     provide methods to read all data
     has understanding of paths etc
     """
+
     def __init__(self, dataset_path, output_targets):
         self.dataset_path = dataset_path
         self.output_targets = output_targets
@@ -20,18 +21,25 @@ class DataReader:
         #self.qrcodes_dictionary = self._create_qrcodes_dictionary()
 
     def _get_jpg_paths(self):
-        glob_search_path = os.path.join(self.dataset_path, "storage/person", "**/*.jpg")
+        glob_search_path = os.path.join(self.dataset_path, "storage/person",
+                                        "**/*.jpg")
         return glob2.glob(glob_search_path)
 
     def _get_pcd_path(self):
-        glob_search_path = os.path.join(self.dataset_path, "storage/person", "**/*.pcd")
+        glob_search_path = os.path.join(self.dataset_path, "storage/person",
+                                        "**/*.pcd")
         return glob2.glob(glob_search_path)
 
     def _get_json_paths(self):
         glob_search_path = os.path.join(self.dataset_path, "**/*.json")
         json_paths = glob2.glob(glob_search_path)
-        json_paths_personal = [json_path for json_path in json_paths if "measures" not in json_path]
-        json_paths_measures = [json_path for json_path in json_paths if "measures" in json_path]
+        json_paths_personal = [
+            json_path for json_path in json_paths
+            if "measures" not in json_path
+        ]
+        json_paths_measures = [
+            json_path for json_path in json_paths if "measures" in json_path
+        ]
         return json_paths_personal, json_paths_measures
 
     def _get_paths(self):
@@ -43,7 +51,8 @@ class DataReader:
         log.info("Dataset path: %s" % self.dataset_path)
         self.jpg_paths = self._get_jpg_paths()
         self.pcd_paths = self._get_pcd_path()
-        self.json_paths_personal, self.json_paths_measures = self._get_json_paths()
+        self.json_paths_personal, self.json_paths_measures = self._get_json_paths(
+        )
 
     # TODO: add error handling
     def find_qrcodes(self):
@@ -73,14 +82,20 @@ class DataReader:
         """
         person_id = json_data_measure["personId"]["value"]
         log.debug("Processing person id %s" % str(person_id))
-        json_path_personal = [json_path for json_path in self.json_paths_personal if person_id in json_path]
-        log.debug("Json path personal for person %s = %s" % (person_id, str(json_path_personal)))
+        json_path_personal = [
+            json_path for json_path in self.json_paths_personal
+            if person_id in json_path
+        ]
+        log.debug("Json path personal for person %s = %s" %
+                  (person_id, str(json_path_personal)))
         #assert len(json_path_personal) == 1
         if len(json_path_personal) == 0:
-            log.warning("Cannot create json path personal for person %s " % person_id)
+            log.warning("Cannot create json path personal for person %s " %
+                        person_id)
             return None
         if len(json_path_personal) > 1:
-            log.warning("More than 1 json path personal for person %s" % person_id)
+            log.warning("More than 1 json path personal for person %s" %
+                        person_id)
         json_path_personal = json_path_personal[0]
         json_data_personal_file = open(json_path_personal)
         json_data_personal = json.load(json_data_personal_file)
@@ -111,17 +126,20 @@ class DataReader:
 
         qrcodes_dictionary = {}
         log.info("inside create_qrcodes_dictionary ")
-        log.info("Total number of json paths measures %d" % len(self.json_paths_measures))
+        log.info("Total number of json paths measures %d" %
+                 len(self.json_paths_measures))
 
         # Go thorugh all measures.
         for json_path_measure in self.json_paths_measures:
-            log.info("Processing json path measure file %s" % str(json_path_measure))
+            log.info("Processing json path measure file %s" %
+                     str(json_path_measure))
             # Load the data and get type.
             json_data_measure = json.load(open(json_path_measure))
             measure_type = json_data_measure["type"]["value"]
             # Ensure manual data. If it is not a manual measurement, skip.
             if measure_type != "manual":
-                log.warning("Ignoring measure file %s as type != manual" % str(json_path_measure))
+                log.warning("Ignoring measure file %s as type != manual" %
+                            str(json_path_measure))
                 continue
 
             # Extract the QR-code.
@@ -138,16 +156,28 @@ class DataReader:
             targets = self._extract_targets(json_data_measure)
 
             # Extract the timestamp from the JSON-data.
-            timestamp = etl_utils.extract_timestamp_from_path(json_path_measure)
+            timestamp = etl_utils.extract_timestamp_from_path(
+                json_path_measure)
 
             # Filter paths for qrcodes and measurements.
             # Find all JPGs and PCDs for a given QR-code and make sure that the timestamps are related.
-            jpg_paths = [jpg_path for jpg_path in self.jpg_paths if etl_utils.is_matching_measurement(jpg_path, qrcode, timestamp)]
-            pcd_paths = [pcd_path for pcd_path in self.pcd_paths if etl_utils.is_matching_measurement(pcd_path, qrcode, timestamp)]
+            jpg_paths = [
+                jpg_path for jpg_path in self.jpg_paths
+                if etl_utils.is_matching_measurement(jpg_path, qrcode,
+                                                     timestamp)
+            ]
+            pcd_paths = [
+                pcd_path for pcd_path in self.pcd_paths
+                if etl_utils.is_matching_measurement(pcd_path, qrcode,
+                                                     timestamp)
+            ]
             if len(pcd_paths) == 0:
-                log.warning("Ignoring qr code %s as pcd paths are empty" % str(qrcode))
+                log.warning("Ignoring qr code %s as pcd paths are empty" %
+                            str(qrcode))
                 continue
 
+            log.info("Added qr code %s into dictionary with targets %s" %
+                     (qrcode, str(targets)))
             qrcodes_dictionary[qrcode].append((targets, jpg_paths, pcd_paths))
 
         return qrcodes_dictionary
