@@ -9,9 +9,9 @@ def extract_timestamp_from_path(file_path):
     """
     Extracts a timestamp from a path.
     """
-    log.info("Extracting timestamp from file %s" % file_path)
+    log.debug("Extracting timestamp from file %s" % file_path)
     timestamp = file_path.split(os.sep)[-1].split("_")[2]
-    log.info("Extracted timestamp %s from file %s" % (timestamp, file_path))
+    log.debug("Extracted timestamp %s from file %s" % (timestamp, file_path))
     #assert len(timestamp) == 13, len(timestamp)
     #assert timestamp.isdigit()
     return timestamp

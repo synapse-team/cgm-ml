@@ -133,6 +133,7 @@ class DataReader:
         for json_path_measure in self.json_paths_measures:
             log.info("Processing json path measure file %s" %
                      str(json_path_measure))
+
             # Load the data and get type.
             json_data_measure = json.load(open(json_path_measure))
             measure_type = json_data_measure["type"]["value"]
