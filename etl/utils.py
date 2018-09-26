@@ -9,18 +9,24 @@ def extract_timestamp_from_path(file_path):
     """
     Extracts a timestamp from a path.
     """
-    log.debug("Extracting timestamp from file %s" % file_path)
-    timestamp = file_path.split(os.sep)[-1].split("_")[2]
-    log.debug("Extracted timestamp %s from file %s" % (timestamp, file_path))
-    #assert len(timestamp) == 13, len(timestamp)
-    #assert timestamp.isdigit()
-    return timestamp
+    timestamp = None
+    try:
+        log.debug("Extracting timestamp from file %s" % file_path)
+        timestamp = file_path.split(os.sep)[-1].split("_")[2]
+        log.debug("Extracted timestamp %s from file %s" % (timestamp, file_path))
+        #assert len(timestamp) == 13, len(timestamp)
+        #assert timestamp.isdigit()
+        return timestamp
+    except Exception as e:
+        log.exception("Unable to extract timestamp")
+    finally:
+        return timestamp
 
 
 def is_matching_measurement(path,
                             qrcode,
                             timestamp,
-                            threshold=(60 * 60 * 24 * 1000)):
+                            threshold=int(60 * 60 * 24 * 1000)):
     """
     Returns True if timetamps match.
 
@@ -33,7 +39,7 @@ def is_matching_measurement(path,
         path (string): Path to some file.
         qrcode (string): A QR-code that is supposed to be related to the file.
         timestamp (string): A timestamp that is supposed to be related to the file.
-        threshold (string): A threshold for a match. In milliseconds. Default is one day.
+        threshold (int): A threshold for a match. In milliseconds. Default is one day.
 
     Returns:
         type: True if it is a match. False otherwise.
@@ -47,6 +53,9 @@ def is_matching_measurement(path,
 
     # Extract the timestamp from the path. Compute difference. Decide.
     path_timestamp = extract_timestamp_from_path(path)
+    if path_timestamp is None:
+        return False
+
     difference = abs(int(timestamp) - int(path_timestamp))
     if difference > threshold:
         return False

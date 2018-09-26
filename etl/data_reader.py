@@ -31,7 +31,7 @@ class DataReader:
         return glob2.glob(glob_search_path)
 
     def _get_json_paths(self):
-        glob_search_path = os.path.join(self.dataset_path, "**/*.json")
+        glob_search_path = os.path.join(self.dataset_path, "db/**/*.json")
         json_paths = glob2.glob(glob_search_path)
         json_paths_personal = [
             json_path for json_path in json_paths
@@ -155,6 +155,7 @@ class DataReader:
 
             # Extract the targets from the JSON-data.
             targets = self._extract_targets(json_data_measure)
+            log.debug("Extracted targets from file %s %s" % (json_path_measure, str(targets)))
 
             # Extract the timestamp from the JSON-data.
             timestamp = etl_utils.extract_timestamp_from_path(
@@ -167,11 +168,15 @@ class DataReader:
                 if etl_utils.is_matching_measurement(jpg_path, qrcode,
                                                      timestamp)
             ]
+            log.debug("Extracted JPG paths for file %s : %d" % (str(json_path_measure), len(jpg_paths)))
+
             pcd_paths = [
                 pcd_path for pcd_path in self.pcd_paths
                 if etl_utils.is_matching_measurement(pcd_path, qrcode,
                                                      timestamp)
             ]
+            log.debug("Extracted pcd_path for file %s : %d" % (str(json_path_measure), len(pcd_paths)))
+
             if len(pcd_paths) == 0:
                 log.warning("Ignoring qr code %s as pcd paths are empty" %
                             str(qrcode))
