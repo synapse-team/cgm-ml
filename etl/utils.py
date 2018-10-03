@@ -12,7 +12,8 @@ def extract_timestamp_from_path(file_path):
     try:
         log.debug("Extracting timestamp from file %s" % file_path)
         timestamp = file_path.split(os.sep)[-1].split("_")[2]
-        log.debug("Extracted timestamp %s from file %s" % (timestamp, file_path))
+        log.debug("Extracted timestamp %s from file %s" %
+                  (timestamp, file_path))
         #assert len(timestamp) == 13, len(timestamp)
         #assert timestamp.isdigit()
         if not timestamp.isdigit():
@@ -78,3 +79,58 @@ def _rotate_point_cloud(point_cloud):
             shape_pc.reshape((-1, 3)), rotation_matrix)
 
     return rotated_data
+
+
+def ensure_voxelgrid_shape(voxelgrid, voxelgrid_target_shape):
+    voxelgrid = pad_voxelgrid(voxelgrid, voxelgrid_target_shape)
+    voxelgrid = crop_voxelgrid(voxelgrid, voxelgrid_target_shape)
+    return voxelgrid
+
+
+def pad_voxelgrid(voxelgrid, voxelgrid_target_shape):
+
+    pad_before = [0.0] * 3
+    pad_after = [0.0] * 3
+    for i in range(3):
+        pad_before[i] = (voxelgrid_target_shape[i] - voxelgrid.shape[i]) // 2
+        pad_before[i] = max(0, pad_before[i])
+        pad_after[i] = voxelgrid_target_shape[i] - pad_before[
+            i] - voxelgrid.shape[i]
+        pad_after[i] = max(0, pad_after[i])
+    voxelgrid = np.pad(
+        voxelgrid,
+        [(pad_before[0], pad_after[0]), (pad_before[1], pad_after[1]),
+         (pad_before[2], pad_after[2])],
+        'constant',
+        constant_values=[(0, 0), (0, 0), (0, 0)])
+
+    return voxelgrid
+
+
+def crop_voxelgrid(voxelgrid, voxelgrid_target_shape):
+
+    while voxelgrid.shape[0] > voxelgrid_target_shape[0]:
+        voxels_start = np.count_nonzero(voxelgrid[0, :, :] != 0.0)
+        voxels_end = np.count_nonzero(voxelgrid[-1, :, :] != 0.0)
+        if voxels_start > voxels_end:
+            voxelgrid = voxelgrid[:-1, :, :]
+        else:
+            voxelgrid = voxelgrid[1:, :, :]
+
+    while voxelgrid.shape[1] > voxelgrid_target_shape[1]:
+        voxels_start = np.count_nonzero(voxelgrid[:, 0, :] != 0.0)
+        voxels_end = np.count_nonzero(voxelgrid[:, -1, :] != 0.0)
+        if voxels_start > voxels_end:
+            voxelgrid = voxelgrid[:, :-1, :]
+        else:
+            voxelgrid = voxelgrid[:, 1:, :]
+
+    while voxelgrid.shape[2] > voxelgrid_target_shape[2]:
+        voxels_start = np.count_nonzero(voxelgrid[:, :, 0] != 0.0)
+        voxels_end = np.count_nonzero(voxelgrid[:, :, -1] != 0.0)
+        if voxels_start > voxels_end:
+            voxelgrid = voxelgrid[:, :, :-1]
+        else:
+            voxelgrid = voxelgrid[:, :, 1:]
+
+    return voxelgrid
