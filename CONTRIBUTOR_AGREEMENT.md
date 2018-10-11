@@ -6,10 +6,10 @@ Thank you for your interest in one or more projects managed by Deutsche Welthung
 In order for You (as defined below) to make intellectual property Contributions (as defined below) now or in the 
 future to Welthungerhilfe projects, You must agree to this Welthungerhilfe Contributor Agreement ("WCA"). If You 
 have any questions about this agreement, licensing, or anything related to intellectual property at Welthungerhilfe, 
-please send an email to info@welthungerhilfe.de.
+please send an email to info@childgrowthmonitor.org.
 
 Please read this WCA carefully before accepting its terms. By accepting the WCA, You are agreeing to be bound by 
-its terms. If You want to accept this WCA, complete the form completely and send a signed copy to info@welthungerhilfe.de.
+its terms. If You want to accept this WCA, complete the form completely and send a signed copy to info@childgrowthmonitor.org.
 
 As used in this WCA: (i) “You" (or "Your") shall mean the entity that is making this Agreement with Welthungerhilfe;
 (ii)"Contribution" shall mean any original work of authorship, including any modifications or additions to an 
@@ -58,9 +58,9 @@ contribution (including all personal information I submit with it, including my 
 indefinitely and may be redistributed consistent with this project or the open source license(s) involved.
 
 You will promptly notify Welthungerhilfe if You become aware of any facts or circumstances that would make 
-these commitments inaccurate in any way. To do so, please send an email to info@welthungerhilfe.de.
+these commitments inaccurate in any way. To do so, please send an email to info@childgrowthmonitor.org.
 
-Welthungerhilfe takes intellectual property very seriously, so we are going to ask You to re­-confirm this WCA
+Welthungerhilfe takes intellectual property very seriously, so we are going to ask You to re-confirm this WCA
 every three years.
 
 You represent that the information provided below is accurate.
