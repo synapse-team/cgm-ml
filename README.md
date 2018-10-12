@@ -11,7 +11,7 @@ This project uses machine learning to identify malnutrition from 3D scans of chi
 ## Getting started
 
 ### Requirements
-Training the models realistically requires using GPU computation. Project members are currently using a variety of cloud instances (GCS, AWS, Azure) and local machines for training. A separate backend project is currently developing the DevOps infrastructure to simplify this.
+Training the models realistically requires using GPU computation. A separate backend project is currently developing the DevOps infrastructure to simplify this.
 
 You will need:
 * Python 3
