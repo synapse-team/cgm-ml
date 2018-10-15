@@ -11,6 +11,7 @@ from etl.data_reader import DataReader
 from etl.data_writer import DataWriter
 from etl.data_loader import DataLoaderFactory
 import configparser
+import datetime
 
 log = logging.getLogger(__name__)
 
@@ -34,8 +35,11 @@ class ETL:
         output_targets = self.config['DataReader']['output_targets'].split(',')
         self.data_reader = DataReader(dataset_path, output_targets)
         input_type = self.config['MAIN']['input_type']
-        self.data_loader = DataLoaderFactory.factory(input_type)
-        self.data_writer = DataWriter()
+        self.data_loader = DataLoaderFactory.factory(
+            input_type, config=self.config)
+        d = datetime.datetime.now()
+        runid = d.strftime('%Y_%m_%d_%H_%M_%S')
+        self.data_writer = DataWriter(self.config, runid)
 
     def run(self):
         log.info("ETL: RUN")
@@ -46,14 +50,22 @@ class ETL:
         # push each qr code to a queue
         # process each qr code, sending the output to the writer
         # writer creates the necessary files (h5)
-        return
+        log.info(qrcode_dict.keys())
+        counter = 0
         # TODO Work in progress to load data and send it to writer
         for qrcode in qrcode_dict:
             log.info("Processing QR code %s" % qrcode)
-            targets, jpg_paths, pcd_paths = qrcode_dict[qrcode]
-            x_input, file_path = self.data_loader.load_data(jpg_paths,
-                                                            pcd_paths)
-            y_output = targets
-            # 3 parts of output are : x_input, y_output, file_path
-            self.data_writer.write(qrcode, x_input, y_output, file_path)
-            log.info("Completed processing QR code %s" % qrcode)
+            try:
+                targets, jpg_paths, pcd_paths = qrcode_dict[qrcode][0]
+                x_input, file_path = self.data_loader.load_data(jpg_paths,
+                                                                pcd_paths)
+                y_output = targets
+                # 3 parts of output are : x_input, y_output, file_path
+                self.data_writer.write(qrcode, x_input, y_output, file_path)
+                log.info("Completed processing QR code %s" % qrcode)
+                counter += 1
+            except Exception as e:
+                log.exception("Error in processing QR code %s" % qrcode)
+
+        log.info("Completed run")
+        log.info("Successfully written %d qr codes" % counter)
