@@ -15,7 +15,10 @@ log = logging.getLogger(__name__)
 
 
 class QRCode:
-    def __init__(self, qrcode, input_type, sequence_length, voxelgrid_random_rotation, voxel_size_meters, voxelgrid_target_shape, image_target_shape, pointcloud_target_size, pointcloud_random_rotation):
+    def __init__(self, qrcode, input_type, sequence_length,
+                 voxelgrid_random_rotation, voxel_size_meters,
+                 voxelgrid_target_shape, image_target_shape,
+                 pointcloud_target_size, pointcloud_random_rotation):
         """
         given a qr-code, get all relevant data for this code
         serves as a reader for a particular qr code
@@ -53,17 +56,23 @@ class QRCode:
         point_cloud = PyntCloud.from_file(pcd_path)
         if self.voxelgrid_random_rotation == True and augmentation == True:
             points = point_cloud.points
-            numpy_points = points.values[:,0:3]
+            numpy_points = points.values[:, 0:3]
             numpy_points = etl_utils._rotate_point_cloud(numpy_points)
             points.iloc[:, 0:3] = numpy_points
             point_cloud.points = points
 
         # Create voxelgrid from pointcloud.
-        voxelgrid_id = point_cloud.add_structure("voxelgrid", size_x=self.voxel_size_meters, size_y=self.voxel_size_meters, size_z=self.voxel_size_meters)
-        voxelgrid = point_cloud.structures[voxelgrid_id].get_feature_vector(mode="density")
+        voxelgrid_id = point_cloud.add_structure(
+            "voxelgrid",
+            size_x=self.voxel_size_meters,
+            size_y=self.voxel_size_meters,
+            size_z=self.voxel_size_meters)
+        voxelgrid = point_cloud.structures[voxelgrid_id].get_feature_vector(
+            mode="density")
         # Do the preprocessing.
         if preprocess:
-            voxelgrid = core_utils.ensure_voxelgrid_shape(voxelgrid, self.voxelgrid_target_shape)
+            voxelgrid = core_utils.ensure_voxelgrid_shape(
+                voxelgrid, self.voxelgrid_target_shape)
             assert voxelgrid.shape == self.voxelgrid_target_shape
 
         #self.voxelgrid_cache[pcd_path] = voxelgrid # TODO cache is turned off because of you know why...
@@ -76,11 +85,12 @@ class QRCode:
         if self.pointcloud_target_size is not None and preprocess is True:
             pointcloud = pointcloud[:self.pointcloud_target_size]
             if len(pointcloud) < self.pointcloud_target_size:
-                zeros = np.zeros((self.pointcloud_target_size - len(pointcloud), 4))
+                zeros = np.zeros(
+                    (self.pointcloud_target_size - len(pointcloud), 4))
                 pointcloud = np.concatenate([pointcloud, zeros])
 
         if self.pointcloud_random_rotation and augmentation:
-            numpy_points = pointcloud[:,0:3]
+            numpy_points = pointcloud[:, 0:3]
             numpy_points = etl_utils._rotate_point_cloud(numpy_points)
             pointcloud[:, 0:3] = numpy_points
 
@@ -93,8 +103,9 @@ class QRCode:
 
         Makes use of a cache. Ensures that the loaded images has a target size.
         """
-        image = image_preprocessing.load_img(image_path, target_size=self.image_target_shape)
-        image = image.rotate(-90, expand=True) # Rotation is necessary.
+        image = image_preprocessing.load_img(
+            image_path, target_size=self.image_target_shape)
+        image = image.rotate(-90, expand=True)  # Rotation is necessary.
         image = np.array(image)
         return image
 
@@ -119,7 +130,6 @@ class QRCode:
                     count += 1
             x_input = np.array(x_input)
             file_path = np.array(file_path)
-
         """
         # Got a proper sample.
         if x_input is not None and y_output is not None and file_path is not None:

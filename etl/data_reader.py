@@ -155,12 +155,10 @@ class DataReader:
             log.info("Extracted qr code %s" % str(qrcode))
 
             # Create an array in the dictionary if necessary.
-            if qrcode not in qrcodes_dictionary.keys():
-                qrcodes_dictionary[qrcode] = []
-
             # Extract the targets from the JSON-data.
             targets = self._extract_targets(json_data_measure)
-            log.debug("Extracted targets from file %s %s" % (json_path_measure, str(targets)))
+            log.debug("Extracted targets from file %s %s" %
+                      (json_path_measure, str(targets)))
 
             # Extract the timestamp from the JSON-data.
             timestamp = etl_utils.extract_timestamp_from_path(
@@ -173,14 +171,16 @@ class DataReader:
                 if etl_utils.is_matching_measurement(jpg_path, qrcode,
                                                      timestamp)
             ]
-            log.debug("Extracted JPG paths for file %s : %d" % (str(json_path_measure), len(jpg_paths)))
+            log.debug("Extracted JPG paths for file %s : %d" %
+                      (str(json_path_measure), len(jpg_paths)))
 
             pcd_paths = [
                 pcd_path for pcd_path in self.pcd_paths
                 if etl_utils.is_matching_measurement(pcd_path, qrcode,
                                                      timestamp)
             ]
-            log.debug("Extracted pcd_path for file %s : %d" % (str(json_path_measure), len(pcd_paths)))
+            log.debug("Extracted pcd_path for file %s : %d" %
+                      (str(json_path_measure), len(pcd_paths)))
 
             if len(pcd_paths) == 0:
                 log.warning("Ignoring qr code %s as pcd paths are empty" %
@@ -189,6 +189,9 @@ class DataReader:
 
             log.info("Added qr code %s into dictionary with targets %s" %
                      (qrcode, str(targets)))
+            if qrcode not in qrcodes_dictionary.keys():
+                qrcodes_dictionary[qrcode] = []
+
             qrcodes_dictionary[qrcode].append((targets, jpg_paths, pcd_paths))
 
         return qrcodes_dictionary

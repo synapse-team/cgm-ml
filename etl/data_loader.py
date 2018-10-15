@@ -10,10 +10,11 @@ log = logging.getLogger(__name__)
 class PCDataLoader:
     def __init__(self, config):
         self.pointcloud_cache = {}
-        self.sequence_length = config.get('sequence_length')
-        self.pointcloud_target_size = config.get('pointcloud_target_size')
-        self.pointcloud_random_rotation = config.get(
-            'pointcloud_random_rotation')
+        self.sequence_length = config.getint('pointcloud', 'sequence_length')
+        self.pointcloud_target_size = config.getint('pointcloud',
+                                                    'pointcloud_target_size')
+        self.pointcloud_random_rotation = config.getboolean(
+            'pointcloud', 'pointcloud_random_rotation')
 
     def _rotate_point_cloud(self, point_cloud):
         rotation_angle = np.random.uniform() * 2 * np.pi
@@ -44,7 +45,7 @@ class PCDataLoader:
                         (self.pointcloud_target_size - len(point_cloud), 4))
                     point_cloud = np.concatenate([point_cloud, zeros])
 
-            if self.pointcloud_random_rotation == True and augmentation == True:
+            if self.pointcloud_random_rotation is True and augmentation is True:
                 numpy_points = point_cloud[:, 0:3]
                 numpy_points = self._rotate_point_cloud(numpy_points)
                 point_cloud[:, 0:3] = numpy_points
@@ -81,11 +82,16 @@ class PCDataLoader:
 
 class VoxelDataLoader:
     def __init__(self, config):
-        self.sequence_length = config.get('sequence_length')
-        self.voxelgrid_random_rotation = config.get(
-            'voxelgrid_random_rotation')
-        self.voxel_size_meters = config.get('voxel_size_meters')
-        self.voxelgrid_target_shape = config.get('voxelgrid_target_shape')
+        self.sequence_length = config.getint('voxelgrid', 'sequence_length')
+        self.voxelgrid_random_rotation = config.getboolean(
+            'voxelgrid', 'voxelgrid_random_rotation')
+        self.voxel_size_meters = config.getfloat('voxelgrid',
+                                                 'voxel_size_meters')
+        voxelgrid_target_shape = config.get('voxelgrid',
+                                            'voxelgrid_target_shape')
+        # TODO: improve
+        self.voxelgrid_target_shape = tuple(
+            [int(x) for x in voxelgrid_target_shape.split(',')])
 
     def _load_voxelgrid(self, pcd_path, preprocess=True, augmentation=True):
         point_cloud = PyntCloud.from_file(pcd_path)
