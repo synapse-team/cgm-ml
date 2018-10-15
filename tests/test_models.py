@@ -2,10 +2,11 @@ import unittest
 from cgmcore import modelutils
 import os
 import tensorflow as tf
+import numpy as np
 
 class TestModels(unittest.TestCase):
 
-    #@unittest.skip("demonstrating skipping")
+    @unittest.skip("demonstrating skipping")
     def test_networks(self):
         """
         Tests all models.
@@ -36,12 +37,12 @@ class TestModels(unittest.TestCase):
             model.load_weights(model_weights_path)
 
 
-    #@unittest.skip("demonstrating skipping")
+    @unittest.skip("demonstrating skipping")
     def test_sequence_networks_lstm(self):
 
-        model = modelutils.create_sequence_model(
+        model = modelutils.create_multiview_model(
             base_model="voxnet",
-            sequence_length=8,
+            multiviews_num=8,
             input_shape=(32, 32, 32),
             output_size = 2,
             use_lstm=True
@@ -49,9 +50,9 @@ class TestModels(unittest.TestCase):
         print(model.inputs[0].shape)
         model.summary()
 
-        model = modelutils.create_sequence_model(
+        model = modelutils.create_multiview_model(
             base_model="pointnet",
-            sequence_length=8,
+            multiviews_num=8,
             input_shape=(30000, 3),
             output_size = 2,
             use_lstm=True
@@ -61,25 +62,30 @@ class TestModels(unittest.TestCase):
 
     def test_sequence_networks_no_lstm(self):
 
-        model = modelutils.create_sequence_model(
+        model = modelutils.create_multiview_model(
             base_model="voxnet",
-            sequence_length=8,
+            multiviews_num=8,
             input_shape=(32, 32, 32),
             output_size = 2,
             use_lstm=False
             )
         print(model.inputs[0].shape)
         model.summary()
+        prediction = model.predict(np.random.random((1, 8, 32, 32, 32)))
+        self.assertEqual(prediction.shape, (1, 2))
 
-        model = modelutils.create_sequence_model(
+        model = modelutils.create_multiview_model(
             base_model="pointnet",
-            sequence_length=8,
+            multiviews_num=8,
             input_shape=(30000, 3),
             output_size = 2,
             use_lstm=False
             )
         print(model.inputs[0].shape)
         model.summary()
+        prediction = model.predict(np.random.random((1, 8, 30000, 3)))
+        self.assertEqual(prediction.shape, (1, 2))
+
 
 if __name__ == '__main__':
     unittest.main()

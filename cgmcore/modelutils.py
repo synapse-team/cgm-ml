@@ -7,8 +7,29 @@ from keras import backend as K
 import numpy as np
 import tensorflow as tf
 
+def create_multiview_model(base_model, multiviews_num, input_shape, output_size, use_lstm):
 
-def create_sequence_model(base_model, sequence_length, input_shape, output_size, use_lstm):
+    assert base_model == "voxnet" or base_model == "pointnet"
+
+    if base_model == "voxnet":
+        base_model = create_voxnet_model_homepage(input_shape, output_size)
+    elif base_model == "pointnet":
+        base_model = create_point_net(input_shape, output_size)
+
+    input = layers.Input(shape=(multiviews_num,) + input_shape)
+
+    multiview_outputs = []
+    for i in range(multiviews_num):
+        multiview_input = layers.Lambda(lambda x: x[:,i])(input)
+        multiview_output = base_model(multiview_input)
+        multiview_outputs.append(multiview_output)
+    output = layers.Average()(multiview_outputs)
+
+    model = models.Model(input, output)
+    return model
+
+
+def create_multiview_model_old(base_model, multiviews_num, input_shape, output_size, use_lstm):
 
     assert base_model == "voxnet" or base_model == "pointnet"
 
@@ -18,11 +39,11 @@ def create_sequence_model(base_model, sequence_length, input_shape, output_size,
         base_model = create_point_net(input_shape, output_size)
 
     model = models.Sequential()
-    model.add(layers.TimeDistributed(base_model, input_shape=(sequence_length,) + input_shape))
+    model.add(layers.TimeDistributed(base_model, input_shape=(multiviews_num,) + input_shape))
     if use_lstm == True:
         model.add(layers.LSTM(8, activation="relu"))
     else:
-        model.add(layers.AveragePooling1D(sequence_length))
+        model.add(layers.AveragePooling1D(multiviews_num))
         model.add(layers.Flatten())
     model.add(layers.Dense(output_size))
 

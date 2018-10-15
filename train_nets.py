@@ -154,15 +154,15 @@ def train_pointnet():
 train_voxnet()
 train_pointnet()
 
-def plot_histories(histories, names):
-    for index, (history, name) in enumerate(histories.items()):
-        for key, data in history.history.items():
-            plt.plot(data, label=name + "-" + key)
+#def plot_histories(histories, names):
+#    for index, (history, name) in enumerate(histories.items()):
+#        for key, data in history.items():
+#            plt.plot(data, label=name + "-" + key)
+#
+#    fig_name = utils.get_datetime_string() + "-histories.png"
+#    fig_path = os.path.join(output_path, fig_name)
+#    plt.savefig(fig_path)
+#    plt.show()
+#    plt.close()
 
-    fig_name = utils.get_datetime_string() + "-histories.png"
-    fig_path = os.path.join(output_path, fig_name)
-    plt.savefig(fig_path)
-    plt.show()
-    plt.close()
-
-plot_histories(histories, ["voxnet", "pointnet"])
+#plot_histories(histories, ["voxnet", "pointnet"])

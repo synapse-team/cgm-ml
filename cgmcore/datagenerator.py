@@ -853,7 +853,8 @@ def create_datagenerator_from_parameters(dataset_path, dataset_parameters):
 
 def get_dataset_path():
     if os.path.exists("datasetpath.txt"):
-        dataset_path = open("datasetpath.txt", "r").read().replace("\n", "")
+        with open("datasetpath.txt", "r") as file:
+            dataset_path = file.read().replace("\n", "")
     else:
         dataset_path = "../data"
     return dataset_path
