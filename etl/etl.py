@@ -71,5 +71,6 @@ class ETL:
                     log.exception("Error in processing QR code %s" % qrcode)
             counter_qrcode += 1
 
+        self.data_writer.wrapup()
         log.info("Successfully written %d qr codes" % counter_qrcode)
         log.info("Total number of training samples %d" % training_samples)
