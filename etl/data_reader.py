@@ -192,6 +192,6 @@ class DataReader:
             if qrcode not in qrcodes_dictionary.keys():
                 qrcodes_dictionary[qrcode] = []
 
-            qrcodes_dictionary[qrcode].append((targets, jpg_paths, pcd_paths))
+            qrcodes_dictionary[qrcode].append((targets, jpg_paths, pcd_paths, timestamp))
 
         return qrcodes_dictionary
