@@ -51,21 +51,26 @@ class ETL:
         # process each qr code, sending the output to the writer
         # writer creates the necessary files (h5)
         log.info(qrcode_dict.keys())
-        counter = 0
+        counter_qrcode = 0
+        training_samples = 0
         # TODO Work in progress to load data and send it to writer
         for qrcode in qrcode_dict:
             log.info("Processing QR code %s" % qrcode)
-            try:
-                targets, jpg_paths, pcd_paths = qrcode_dict[qrcode][0]
-                x_input, file_path = self.data_loader.load_data(jpg_paths,
-                                                                pcd_paths)
-                y_output = targets
-                # 3 parts of output are : x_input, y_output, file_path
-                self.data_writer.write(qrcode, x_input, y_output, file_path)
-                log.info("Completed processing QR code %s" % qrcode)
-                counter += 1
-            except Exception as e:
-                log.exception("Error in processing QR code %s" % qrcode)
+            log.info("Number of training samples for qrcode %s is %d" % (qrcode, len(qrcode_dict[qrcode])))
+            for data in qrcode_dict[qrcode]:
+                try:
+                    targets, jpg_paths, pcd_paths, timestamp = data
+                    x_input, file_path = self.data_loader.load_data(jpg_paths,
+                                                                    pcd_paths)
+                    y_output = targets
+                    # 3 parts of output are : x_input, y_output, file_path
+                    self.data_writer.write(qrcode, x_input, y_output, timestamp)
+                    training_samples += 1
+                    log.info("Completed processing QR code %s with timestamp %s " % (qrcode, str(timestamp)))
+                except Exception as e:
+                    log.exception("Error in processing QR code %s" % qrcode)
+            counter_qrcode += 1
 
-        log.info("Completed run")
-        log.info("Successfully written %d qr codes" % counter)
+        self.data_writer.wrapup()
+        log.info("Successfully written %d qr codes" % counter_qrcode)
+        log.info("Total number of training samples %d" % training_samples)

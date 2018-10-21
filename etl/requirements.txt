@@ -2,3 +2,6 @@ glob2==0.6
 numpy==1.15.2
 PyYAML
 h5py
+pandas
+scipy
+git+https://github.com/daavoo/pyntcloud
