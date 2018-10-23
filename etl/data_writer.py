@@ -22,7 +22,7 @@ class DataWriter:
         if not os.path.exists(self.run_dir):
             os.makedirs(self.run_dir)
 
-    def write(self, qrcode, x_input, y_output, timestamp):
+    def write(self, qrcode, x_input, y_output, timestamp, pcd_paths):
         # qr code is the name of the file
         # xinput is ndarray
         # output is the target values
@@ -37,10 +37,20 @@ class DataWriter:
         x_input.tofile(x_filename)
 
         # target filename
-        targetfilename = os.path.join(subdir,'target.txt')
+        targetfilename = os.path.join(subdir, 'target.txt')
         with open(targetfilename, "w") as outfile:
             writer = csv.writer(outfile)
             writer.writerow(y_output)
+
+        pcd_dir = os.path.join(subdir, 'pcd')
+        if not os.path.exists(pcd_dir):
+            os.makedirs(pcd_dir)
+        # copy over the pcd paths
+        log.info("Copying pcd files for qrcode %s" % qrcode)
+        for pcd_path in pcd_paths:
+            fname = os.path.basename(pcd_path)
+            dst = os.path.join(pcd_dir, fname)
+            shutil.copyfile(pcd_path, dst)
 
     def wrapup(self):
         # write the readme file

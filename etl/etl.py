@@ -64,7 +64,7 @@ class ETL:
                                                                     pcd_paths)
                     y_output = targets
                     # 3 parts of output are : x_input, y_output, file_path
-                    self.data_writer.write(qrcode, x_input, y_output, timestamp)
+                    self.data_writer.write(qrcode, x_input, y_output, timestamp, pcd_paths)
                     training_samples += 1
                     log.info("Completed processing QR code %s with timestamp %s " % (qrcode, str(timestamp)))
                 except Exception as e:
