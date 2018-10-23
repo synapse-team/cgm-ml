@@ -53,9 +53,9 @@ class DataWriter:
         # write the readme file
         # zip and create simlink
         log.info("Going to zip the directory %s" % self.run_dir)
-        zipfilename = self.run_id
-        zipfile = os.path.join(self.base_dir, zipfilename)
+        zipfile = os.path.join(self.base_dir, self.run_id)
         shutil.make_archive(zipfile, 'zip', self.run_dir)
 
         # create a simlink
-        os.symlink(os.path.join(zipfile, '.zip'), os.path.join(self.base_dir, 'latest.zip'))
+        simlinkfile = "%s.zip" % zipfile
+        os.symlink(simlinkfile, os.path.join(self.base_dir, 'latest.zip'))
