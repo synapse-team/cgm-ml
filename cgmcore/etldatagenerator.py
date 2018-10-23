@@ -3,10 +3,10 @@ import os
 import numpy as np
 import glob2 as glob
 #import json
-#import random
+import random
 #import keras.preprocessing.image as image_preprocessing
-#import progressbar
-#from pyntcloud import PyntCloud
+import progressbar
+from pyntcloud import PyntCloud
 #import matplotlib.pyplot as plt
 #import multiprocessing as mp
 #import uuid
@@ -23,7 +23,7 @@ class ETLDataGenerator(object):
         self,
         dataset_path,
         input_type,
-        output_targets,
+        #output_targets,
         sequence_length=0,
         image_target_shape=(160, 90),
         voxelgrid_target_shape=(32, 32, 32),
@@ -52,7 +52,7 @@ class ETLDataGenerator(object):
         # Preconditions.
         assert os.path.exists(dataset_path), "dataset_path must exist: " + str(dataset_path)
         assert isinstance(input_type, str), "input_type must be string: " + str(input_type)
-        assert isinstance(output_targets, list), "output_targets must be list: " + str(output_targets)
+        #assert isinstance(output_targets, list), "output_targets must be list: " + str(output_targets)
         if input_type == "image":
             assert len(image_target_shape) == 2, "image_target_shape must be 2-dimensional: " + str(image_target_shape)
         if input_type == "voxelgrid":
@@ -61,7 +61,7 @@ class ETLDataGenerator(object):
         # Assign the instance-variables.
         self.dataset_path = dataset_path
         self.input_type = input_type
-        self.output_targets = output_targets
+        #self.output_targets = output_targets
         self.sequence_length = sequence_length
         self.image_target_shape = image_target_shape
         self.voxelgrid_target_shape = voxelgrid_target_shape
@@ -74,60 +74,51 @@ class ETLDataGenerator(object):
         self._find_qrcodes()
         assert self.qrcodes != [], "No QR-codes found!"
 
-        self._prepare_data()
-
-        return
-
-        # HERE COMES OLD STUFF
+        # Prepare the data.
+        self._prepare_qrcodes_dictionary()
 
         # Create some caches.
         self.image_cache = {}
         self.voxelgrid_cache = {}
         self.pointcloud_cache = {}
-
-        # Get all the paths.
-        self._get_paths()
-
+        
         # Check if paths are fine.
         if self.input_type == "image":
-            assert self.jpg_paths != []
+            assert self.all_jpg_paths != []
         elif self.input_type == "voxelgrid" or self.input_type == "pointcloud":
-            assert self.pcd_paths != []
+            assert self.all_pcd_paths != []
         else:
             raise Exception("Unexpected: " + self.input_type)
-        assert self.json_paths_personal != []
-        assert self.json_paths_measures != []
-
-
-
-        # Create the QR-codes dictionary.
-        self._create_qrcodes_dictionary()
 
 
     def _find_qrcodes(self):
         """
         Finds all QR-codes.
 
-        Each individual is represented via a unique QR-codes. This method extracts the set of QR-codes.
+        Each individual is represented via a unique QR-code. This method extracts the set of QR-codes.
         """
 
         # Retrieve the QR-codes from the folders.
         paths = glob.glob(os.path.join(self.dataset_path, "*"))
         self.qrcodes = sorted([path.split("/")[-1] for path in paths])
 
-    def _prepare_data(self):
+        
+    def _prepare_qrcodes_dictionary(self):
 
-        self.data = {}
+        self.all_pcd_paths = []
+        self.all_jpg_paths = []
+        
+        self.qrcodes_dictionary = {}
         for qrcode in self.qrcodes:
-            self.data[qrcode] = []
+            self.qrcodes_dictionary[qrcode] = []
             #print("QR-code:", qrcode)
             measurement_paths = glob.glob(os.path.join(self.dataset_path, qrcode, "*"))
             for measurement_path in measurement_paths:
                 # Getting PCDs.
-                pcd_paths = glob.glob(os.path.join(measurement_path, "*.pcd"))
-
+                pcd_paths = glob.glob(os.path.join(measurement_path, "pcd", "*.pcd"))
+                
                 # Getting JPGs.
-                jpg_paths = glob.glob(os.path.join(measurement_path, "*.jpg"))
+                jpg_paths = glob.glob(os.path.join(measurement_path, "jpg", "*.jpg"))
 
                 # Loading the targets.
                 target_path = os.path.join(measurement_path, "target.txt")
@@ -136,18 +127,23 @@ class ETLDataGenerator(object):
                 target_file.close()
 
                 # Done.
-                #print(qrcode, pcd_paths, targets)
-                self.data[qrcode].append((pcd_paths, jpg_paths, targets))
+                self.qrcodes_dictionary[qrcode].append((pcd_paths, jpg_paths, targets))
+                self.all_pcd_paths.extend(pcd_paths)
+                self.all_jpg_paths.extend(jpg_paths)
 
 
     def analyze_files(self):
 
         for qrcode in self.qrcodes:
             print("QR-code:", qrcode)
-            for pcd_paths, jpg_paths, targets in self.data[qrcode]:
-                print("{} PCD-files for targets {}".format(len(pcd_paths), targets))
-                print("{} JPG-files for targets {}".format(len(pcd_paths), targets))
+            for pcd_paths, jpg_paths, targets in self.qrcodes_dictionary[qrcode]:
+                print("  {} PCD-files for targets {}".format(len(pcd_paths), targets))
+                print("  {} JPG-files for targets {}".format(len(jpg_paths), targets))
 
+        print("Total PCD-files: {}".format(len(self.all_pcd_paths)))
+        print("Total JPG-files: {}".format(len(self.all_jpg_paths)))
+
+                
             #measurement_paths = glob.glob(os.path.join(self.dataset_path, qrcode, "*"))
             #for measurement_path in measurement_paths:
             #    print("  ", measurement_path.split("/")[-1])
@@ -156,15 +152,165 @@ class ETLDataGenerator(object):
         #print("Number of JPGs:", len(self.jpg_paths))
         #print("Number of PCDs:", len(self.pcd_paths))
         #print("Number of JSONs (personal):", len(self.json_paths_personal))
-        p#rint("Number of JSONs (measures):", len(self.json_paths_measures))
+        #print("Number of JSONs (measures):", len(self.json_paths_measures))
+
+        
+    def generate(self, size, qrcodes_to_use=None, verbose=False, yield_file_paths=False, multiprocessing_jobs=1):
+
+        if qrcodes_to_use == None:
+            qrcodes_to_use = self.qrcodes
+
+        # Main loop.
+        while True:
+
+            # Use only a single process.
+            if multiprocessing_jobs == 1:
+                yield generate_data(self, size, qrcodes_to_use, verbose, yield_file_paths, None)
+
+            # Use multiple processes.
+            elif multiprocessing_jobs > 1:
+
+                # Create chunks of almost equal size.
+                subset_sizes = [0] * multiprocessing_jobs
+                subset_sizes[0:multiprocessing_jobs - 1] = [size // multiprocessing_jobs] * (multiprocessing_jobs - 1)
+                subset_sizes[multiprocessing_jobs - 1] = size - sum(subset_sizes[0:multiprocessing_jobs - 1])
+                subset_sizes = [s for s in subset_sizes if s > 0]
+                assert sum(subset_sizes) == size
+
+                # Create an output_queue.
+                output_queue = mp.Queue()
+
+                # Create the processes.
+                processes = []
+                for subset_size in subset_sizes:
+                    process_target = generate_data
+                    process_args = (self, subset_size, qrcodes_to_use, verbose, yield_file_paths, output_queue)
+                    process = mp.Process(target=process_target, args=process_args)
+                    processes.append(process)
+
+                # Start the processes.
+                for p in processes:
+                    p.start()
+
+                # Exit the completed processes.
+                for p in processes:
+                    p.join()
+
+                # Get process results from the output queue
+                output_paths = [output_queue.get() for p in processes]
+
+                # Merge data.
+                x_inputs_arrays = []
+                y_outputs_arrays = []
+                file_paths_arrays = []
+                for output_path in output_paths:
+                    # Read data from file and delete it.
+                    result_values = pickle.load(open(output_path, "rb"))
+                    assert len(result_values[0]) > 0
+                    assert len(result_values[1]) > 0
+                    os.remove(output_path)
+
+                    # Gather the data into arrays.
+                    if x_inputs_arrays != []:
+                        assert result_values[0].shape[1:] == x_inputs_arrays[-1].shape[1:], str(result_values[0].shape) + " vs " + str(x_inputs_arrays[-1].shape)
+                    if y_outputs_arrays != []:
+                        assert result_values[1].shape[1:] == y_outputs_arrays[-1].shape[1:], str(result_values[1].shape) + " vs " + str(y_outputs_arrays[-1].shape)
+                    x_inputs_arrays.append(result_values[0])
+                    y_outputs_arrays.append(result_values[1])
+                    if yield_file_paths == True:
+                        file_paths_arrays.append(result_values[2])
+                    else:
+                        file_paths_arrays.append([])
+
+                x_inputs = np.concatenate(x_inputs_arrays)
+                y_outputs = np.concatenate(y_outputs_arrays)
+                file_paths = np.concatenate(file_paths_arrays)
+                assert len(x_inputs) == size
+                assert len(y_outputs) == size
+
+                # Done.
+                if yield_file_paths == False:
+                    yield x_inputs, y_outputs
+                else:
+                    yield x_inputs, y_outputs, file_paths
+
+            else:
+                raise Exception("Unexpected value for 'multiprocessing_jobs' " + str(multiprocessing_jobs))
+        
+
+    def _load_pointcloud(self, pcd_path, preprocess=True, augmentation=True):
+
+        pointcloud = self.pointcloud_cache.get(pcd_path, [])
+        if pointcloud == []:
+            pointcloud = PyntCloud.from_file(pcd_path).points.values
+            pointcloud = np.array(pointcloud)
+
+            if self.pointcloud_target_size != None and preprocess == True:
+                pointcloud = pointcloud[:self.pointcloud_target_size]
+                if len(pointcloud) < self.pointcloud_target_size:
+                    zeros = np.zeros((self.pointcloud_target_size - len(pointcloud), 4))
+                    pointcloud = np.concatenate([pointcloud, zeros])
+
+            if self.pointcloud_random_rotation == True and augmentation==True:
+                numpy_points = pointcloud[:,0:3]
+                numpy_points = self._rotate_point_cloud(numpy_points)
+                pointcloud[:,0:3] = numpy_points
+
+            #self.pointcloud_cache[pcd_path] = pointcloud
+        return pointcloud
 
 
+    def _load_voxelgrid(self, pcd_path, preprocess=True, augmentation=True):
+        voxelgrid = self.voxelgrid_cache.get(pcd_path, [])
+        if voxelgrid == []:
+
+            # Load the pointcloud.
+            point_cloud = PyntCloud.from_file(pcd_path)
+            if self.voxelgrid_random_rotation == True and augmentation == True:
+                points = point_cloud.points
+                numpy_points = points.values[:,0:3]
+                numpy_points = self._rotate_point_cloud(numpy_points)
+                points.iloc[:,0:3] = numpy_points
+                point_cloud.points = points
+
+            # Create voxelgrid from pointcloud.
+            voxelgrid_id = point_cloud.add_structure("voxelgrid", size_x=self.voxel_size_meters, size_y=self.voxel_size_meters, size_z=self.voxel_size_meters)
+            voxelgrid = point_cloud.structures[voxelgrid_id].get_feature_vector(mode="density")
+
+            # Do the preprocessing.
+            if preprocess == True:
+                voxelgrid = utils.ensure_voxelgrid_shape(voxelgrid, self.voxelgrid_target_shape)
+                assert voxelgrid.shape == self.voxelgrid_target_shape
+
+            #self.voxelgrid_cache[pcd_path] = voxelgrid # TODO cache is turned off because of you know why...
+
+        return voxelgrid
+
+
+    def _rotate_point_cloud(self, point_cloud):
+
+        rotation_angle = np.random.uniform() * 2 * np.pi
+        cosval = np.cos(rotation_angle)
+        sinval = np.sin(rotation_angle)
+        rotation_matrix = np.array([[cosval, sinval, 0],
+                                        [-sinval, cosval, 0],
+                                        [0, 0, 1]])
+
+        rotated_data = np.zeros(point_cloud.shape, dtype=np.float32)
+        for k in range(point_cloud.shape[0]):
+
+            shape_pc = point_cloud[k, ...]
+            rotated_data[k, ...] = np.dot(shape_pc.reshape((-1, 3)), rotation_matrix)
+
+        return rotated_data
+       
+        
 def create_datagenerator_from_parameters(dataset_path, dataset_parameters):
     print("Creating data-generator...")
     datagenerator = ETLDataGenerator(
         dataset_path=dataset_path,
         input_type=dataset_parameters["input_type"],
-        output_targets=dataset_parameters["output_targets"],
+        #output_targets=dataset_parameters["output_targets"],
         sequence_length=dataset_parameters.get("sequence_length", 0),
         voxelgrid_target_shape=dataset_parameters.get("voxelgrid_target_shape", None),
         voxel_size_meters=dataset_parameters.get("voxel_size_meters", None),
@@ -183,6 +329,140 @@ def get_dataset_path():
     else:
         # Finding the latest.
         dataset_paths = glob.glob("../data/etl/*")
+        dataset_paths = [dataset_path for dataset_path in dataset_paths if os.path.isdir(dataset_path)]
         dataset_path = sorted(dataset_paths)[-1]
 
     return dataset_path
+
+def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, output_queue):
+    if verbose == True:
+        print("Generating using QR-codes:", qrcodes_to_use)
+
+    assert size != 0
+
+    x_inputs = []
+    y_outputs = []
+    file_paths = []
+
+    if verbose == True:
+        bar = progressbar.ProgressBar(max_value=size)
+    while len(x_inputs) < size:
+
+        # Get a random QR-code.
+        qrcode = random.choice(qrcodes_to_use)
+
+        # Get targets and paths randomly.
+        if qrcode not in  class_self.qrcodes_dictionary.keys():
+            continue
+        pcd_paths, jpg_paths, targets = random.choice(class_self.qrcodes_dictionary[qrcode])
+
+        # No pointclouds.
+        if len(pcd_paths) == 0:
+            continue        
+            
+        # Get a sample.
+        x_input = None
+        y_output = None
+        file_path = None
+
+        # Get the input. Not dealing with sequences.
+        if class_self.sequence_length == 0:
+            x_input, file_path = get_input(class_self, jpg_paths, pcd_paths)
+
+        # Get the input. Dealing with sequences here.
+        else:
+            count = 0
+            x_input, file_path = [], []
+            while count != class_self.sequence_length:
+                x, f = get_input(class_self, jpg_paths, pcd_paths)
+                if x is not None and f is not None:
+                    x_input.append(x)
+                    file_path.append(f)
+                    count += 1
+            x_input = np.array(x_input)
+            file_path = np.array(file_path)
+
+        # Set the output.
+        y_output = targets
+
+        # Got a proper sample.
+        if x_input is not None and y_output is not None and file_path is not None:
+            x_inputs.append(x_input)
+            y_outputs.append(y_output)
+            file_paths.append(file_path)
+
+        assert len(x_inputs) == len(y_outputs)
+        assert len(y_outputs) == len(file_paths)
+
+        if verbose == True:
+            bar.update(len(x_inputs))
+
+    if verbose == True:
+        bar.finish()
+
+    assert len(x_inputs) == size
+    assert len(y_outputs) == size
+
+    # Turn everything into ndarrays.
+    x_inputs = np.array(x_inputs)
+    y_outputs = np.array(y_outputs)
+
+    # Prepare result values.
+    assert len(x_inputs) == size
+    assert len(y_outputs) == size
+    if yield_file_paths == False:
+        return_values =  (x_inputs, y_outputs)
+    else:
+        return_values = (x_inputs, y_outputs, file_paths)
+
+    # This is used in multiprocessing. Creates a pickle file and puts the data there.
+    if output_queue != None:
+        output_path = uuid.uuid4().hex + ".p"
+        pickle.dump(return_values, open(output_path, "wb"))
+        output_queue.put(output_path)
+    else:
+        return return_values
+
+
+def get_input(class_self, jpg_paths, pcd_paths):
+    # Get a random image.
+    if class_self.input_type == "image":
+        if len(jpg_paths) == 0:
+            print("777")
+            return None, None
+        jpg_path = random.choice(jpg_paths)
+        image = class_self._load_image(jpg_path)
+        file_path = jpg_path
+        x_input = image
+
+    # Get a random voxelgrid.
+    elif class_self.input_type == "voxelgrid":
+        if len(pcd_paths) == 0:
+            return None, None
+        pcd_path = random.choice(pcd_paths)
+        try:
+            voxelgrid = class_self._load_voxelgrid(pcd_path)
+            file_path = pcd_path
+            x_input = voxelgrid
+        except Exception as e:
+            print(e)
+            return None, None
+
+    # Get a random pointcloud.
+    elif class_self.input_type == "pointcloud":
+        if len(pcd_paths) == 0:
+            return None, None
+        pcd_path = random.choice(pcd_paths)
+        try:
+            pointcloud = class_self._load_pointcloud(pcd_path)
+            file_path = pcd_path
+            x_input = pointcloud
+        except Exception as e:
+            print(e)
+            return None, None
+
+    # Should not happen.
+    else:
+        raise Exception("Unknown input_type: " + input_type)
+
+    return x_input, file_path
