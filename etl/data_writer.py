@@ -22,7 +22,7 @@ class DataWriter:
         if not os.path.exists(self.run_dir):
             os.makedirs(self.run_dir)
 
-    def write(self, qrcode, x_input, y_output, timestamp):
+    def write(self, qrcode, y_output, timestamp, pcd_paths):
         # qr code is the name of the file
         # xinput is ndarray
         # output is the target values
@@ -33,21 +33,34 @@ class DataWriter:
         if not os.path.exists(subdir):
             os.makedirs(subdir)
 
-        x_filename = os.path.join(subdir, 'data.npy')
-        x_input.tofile(x_filename)
-
         # target filename
-        targetfilename = os.path.join(subdir,'target.txt')
+        targetfilename = os.path.join(subdir, 'target.txt')
         with open(targetfilename, "w") as outfile:
             writer = csv.writer(outfile)
             writer.writerow(y_output)
 
+        pcd_dir = os.path.join(subdir, 'pcd')
+        if not os.path.exists(pcd_dir):
+            os.makedirs(pcd_dir)
+        # copy over the pcd paths
+        log.info("Copying pcd files for qrcode %s" % qrcode)
+        for pcd_path in pcd_paths:
+            fname = os.path.basename(pcd_path)
+            dst = os.path.join(pcd_dir, fname)
+            shutil.copyfile(pcd_path, dst)
+
     def wrapup(self):
         # write the readme file
         # zip and create simlink
-        zipfilename = self.run_id
-        zipfile = os.path.join(self.base_dir, zipfilename)
+        log.info("Going to zip the directory %s" % self.run_dir)
+        zipfile = os.path.join(self.base_dir, self.run_id)
         shutil.make_archive(zipfile, 'zip', self.run_dir)
 
+        # check existing simlink
+        latestfilename = os.path.join(self.base_dir, 'latest.zip')
+        if os.path.exists(latestfilename):
+            os.unlink(latestfilename)
+
         # create a simlink
-        os.symlink(zipfile, os.path.join(self.base_dir, 'latest.zip'))
+        simlinkfile = "%s.zip" % zipfile
+        os.symlink(simlinkfile, latestfilename)
