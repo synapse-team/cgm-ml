@@ -210,7 +210,8 @@ class DataGenerator(object):
 
         person_id = json_data_measure["personId"]["value"]
         json_path_personal = [json_path for json_path in self.json_paths_personal if person_id in json_path]
-        assert len(json_path_personal) == 1
+        json_path_personal = [json_path for json_path in json_path_personal if "ipynb_checkpoints" not in json_path]
+        assert len(json_path_personal) == 1, "Found {} jsons for person_id {}\n{}".format(len(json_path_personal), person_id, json_path_personal)
         json_path_personal = json_path_personal[0]
         json_data_personal_file = open(json_path_personal)
         json_data_personal = json.load(json_data_personal_file)
@@ -245,19 +246,24 @@ class DataGenerator(object):
             return False
 
         # Extract the timestamp from the path. Compute difference. Decide.
-        path_timestamp = self._extract_timestamp_from_path(path)
+        path_timestamp = self._extract_timestamp_from_path(path, qrcode)
         difference = abs(int(timestamp) - int(path_timestamp))
         if difference > threshold:
             return False
 
         return True
 
-    def _extract_timestamp_from_path(self, file_path):
+    
+    def _extract_timestamp_from_path(self, file_path, qrcode=None):
         """
         Extracts a timestamp from a path.
         """
+        # This is fix of the "underscores in QR-code"-issue. Poor man's solution ;)
+        if qrcode != None:
+            file_path = file_path.replace(qrcode, "REPLACED")
+        
         timestamp = file_path.split(os.sep)[-1].split("_")[2]
-        assert len(timestamp) == 13, len(timestamp)
+        assert len(timestamp) == 13, "Invalid timestamp {} encountered for {}".format(timestamp, file_path)
         assert timestamp.isdigit()
         return timestamp
 

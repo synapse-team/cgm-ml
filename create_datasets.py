@@ -49,7 +49,7 @@ dataset_parameters_voxelgrids["sequence_length"] = 4
 
 # Define which parameters to use.
 dataset_parameters_to_use = []
-#dataset_parameters_to_use.append(dataset_parameters_pointclouds)
+dataset_parameters_to_use.append(dataset_parameters_pointclouds)
 dataset_parameters_to_use.append(dataset_parameters_voxelgrids)
 
 # Analysis.
