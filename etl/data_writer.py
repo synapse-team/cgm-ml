@@ -22,7 +22,7 @@ class DataWriter:
         if not os.path.exists(self.run_dir):
             os.makedirs(self.run_dir)
 
-    def write(self, qrcode, x_input, y_output, timestamp, pcd_paths):
+    def write(self, qrcode, y_output, timestamp, pcd_paths):
         # qr code is the name of the file
         # xinput is ndarray
         # output is the target values
@@ -32,9 +32,6 @@ class DataWriter:
         subdir = os.path.join(qrcode_dir, str(timestamp))
         if not os.path.exists(subdir):
             os.makedirs(subdir)
-
-        x_filename = os.path.join(subdir, 'data.npy')
-        x_input.tofile(x_filename)
 
         # target filename
         targetfilename = os.path.join(subdir, 'target.txt')

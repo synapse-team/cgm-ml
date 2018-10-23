@@ -27,7 +27,6 @@ class ETL:
         self.config = configparser.ConfigParser()
         self.data_reader = None
         self.data_writer = None
-        self.data_loader = None
 
     def initialize(self, config_path):
         self.config.read(config_path)
@@ -35,8 +34,6 @@ class ETL:
         output_targets = self.config['DataReader']['output_targets'].split(',')
         self.data_reader = DataReader(dataset_path, output_targets)
         input_type = self.config['MAIN']['input_type']
-        self.data_loader = DataLoaderFactory.factory(
-            input_type, config=self.config)
         d = datetime.datetime.now()
         runid = d.strftime('%Y_%m_%d_%H_%M_%S')
         self.data_writer = DataWriter(self.config, runid)
@@ -60,11 +57,8 @@ class ETL:
             for data in qrcode_dict[qrcode]:
                 try:
                     targets, jpg_paths, pcd_paths, timestamp = data
-                    x_input, file_path = self.data_loader.load_data(jpg_paths,
-                                                                    pcd_paths)
                     y_output = targets
-                    # 3 parts of output are : x_input, y_output, file_path
-                    self.data_writer.write(qrcode, x_input, y_output, timestamp, pcd_paths)
+                    self.data_writer.write(qrcode, y_output, timestamp, pcd_paths)
                     training_samples += 1
                     log.info("Completed processing QR code %s with timestamp %s " % (qrcode, str(timestamp)))
                 except Exception as e:
