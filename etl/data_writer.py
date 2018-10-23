@@ -52,6 +52,7 @@ class DataWriter:
     def wrapup(self):
         # write the readme file
         # zip and create simlink
+        log.info("Going to zip the directory %s" % self.run_dir)
         zipfilename = self.run_id
         zipfile = os.path.join(self.base_dir, zipfilename)
         shutil.make_archive(zipfile, 'zip', self.run_dir)
