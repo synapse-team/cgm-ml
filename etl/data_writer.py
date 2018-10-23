@@ -57,4 +57,4 @@ class DataWriter:
         shutil.make_archive(zipfile, 'zip', self.run_dir)
 
         # create a simlink
-        os.symlink(zipfile, os.path.join(self.base_dir, 'latest.zip'))
+        os.symlink(os.path.join(zipfile, '.zip'), os.path.join(self.base_dir, 'latest.zip'))
