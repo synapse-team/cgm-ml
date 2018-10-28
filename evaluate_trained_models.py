@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 # Find all date_times.
-all_paths = glob.glob("models/*")
+all_paths = glob.glob("../data/output/*")
 date_times = []
 for path in all_paths:
     split = path.split("/")[-1].split("-")

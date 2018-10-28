@@ -15,10 +15,10 @@ import random
 dataset_path = get_dataset_path()
 
 # Hyperparameters.
-steps_per_epoch = 1
-validation_steps = 1
-epochs = 25
-batch_size = 1
+steps_per_epoch = 100
+validation_steps = 10
+epochs = 100
+batch_size = 32
 random_seed = 667
 
 # Create some generators.
@@ -28,7 +28,7 @@ dataset_parameters_pointclouds = {}
 dataset_parameters_pointclouds["input_type"] = "pointcloud"
 dataset_parameters_pointclouds["output_targets"] = ["height"]
 dataset_parameters_pointclouds["random_seed"] = random_seed
-dataset_parameters_pointclouds["pointcloud_target_size"] = 30000
+dataset_parameters_pointclouds["pointcloud_target_size"] = 10000
 dataset_parameters_pointclouds["pointcloud_random_rotation"] = False
 dataset_parameters_pointclouds["sequence_length"] = 0
 datagenerator_instance_pointclouds = create_datagenerator_from_parameters(dataset_path, dataset_parameters_pointclouds)
@@ -129,19 +129,15 @@ def train_voxnet():
             metrics=["mae"]
         )
 
-    history = model_voxnet.fit(
-        np.random.random((1, 32,32,32)), np.random.random((1,1))
-    )
-    
     # Train the model.
-    #history = model_voxnet.fit_generator(
-    #    generator_voxelgrids_train,
-    #    steps_per_epoch=steps_per_epoch,
-    #    epochs=epochs,
-        #validation_data=generator_voxelgrids_validate,
-        #validation_steps=validation_steps,
-        #callbacks=[tensorboard_callback]
-    #    )
+    history = model_voxnet.fit_generator(
+        generator_voxelgrids_train,
+        steps_per_epoch=steps_per_epoch,
+        epochs=epochs,
+        validation_data=generator_voxelgrids_validate,
+        validation_steps=validation_steps,
+        callbacks=[tensorboard_callback]
+        )
 
     histories["voxnet"] = history
     save_model_and_history(model_voxnet, history, "voxnet")
@@ -149,36 +145,36 @@ def train_voxnet():
     
 # Training PointNet.
 def train_pointnet():
-    dataset_name = dataset_name_pointcloud
-    print("Loading dataset...")
-    (x_input_train, y_output_train, _), (x_input_test, y_output_test, _), dataset_parameters = pickle.load(open(dataset_name, "rb"))
-    pp.pprint(dataset_parameters)
+    #dataset_name = dataset_name_pointcloud
+    #print("Loading dataset...")
+    #(x_input_train, y_output_train, _), (x_input_test, y_output_test, _), dataset_parameters = pickle.load(open(dataset_name, "rb"))
+    #pp.pprint(dataset_parameters)
 
-    def transform(x_input, y_output):
-        x_input_transformed = []
-        y_output_transformed = []
-        for input_sample, output_sample in zip(x_input_train, y_output_train):
-            if input_sample.shape[0] == 30000:
-                x_input_transformed.append(input_sample[:,0:3])
-                y_output_transformed.append(output_sample)
-            else:
-                # TODO maybe do some padding here?
-                print("Ignoring shape:", input_sample.shape)
+    #def transform(x_input, y_output):
+    #    x_input_transformed = []
+    #    y_output_transformed = []
+    #    for input_sample, output_sample in zip(x_input_train, y_output_train):
+    #        if input_sample.shape[0] == 30000:
+    #            x_input_transformed.append(input_sample[:,0:3])
+    #            y_output_transformed.append(output_sample)
+    #        else:
+    #            # TODO maybe do some padding here?
+    #            print("Ignoring shape:", input_sample.shape)
 
-        x_input_transformed = np.array(x_input_transformed)
-        y_output_transformed = np.array(y_output_transformed)
-        return x_input_transformed, y_output_transformed
+    #    x_input_transformed = np.array(x_input_transformed)
+    #    y_output_transformed = np.array(y_output_transformed)
+    #    return x_input_transformed, y_output_transformed
 
-    x_input_train, y_output_train = transform(x_input_train, y_output_train)
-    x_input_test, y_output_test = transform(x_input_test, y_output_test)
+    #x_input_train, y_output_train = transform(x_input_train, y_output_train)
+    #x_input_test, y_output_test = transform(x_input_test, y_output_test)
 
-    print("Training data input shape:", x_input_train.shape)
-    print("Training data output shape:", y_output_train.shape)
-    print("Testing data input shape:", x_input_test.shape)
-    print("Testing data output shape:", y_output_test.shape)
-    print("")
+    #print("Training data input shape:", x_input_train.shape)
+    #print("Training data output shape:", y_output_train.shape)
+    #print("Testing data input shape:", x_input_test.shape)
+    #print("Testing data output shape:", y_output_test.shape)
+    #print("")
 
-    input_shape = (30000, 3)
+    input_shape = (10000, 3)
     output_size = 1
     model_pointnet = modelutils.create_point_net(input_shape, output_size)
     model_pointnet.summary()
@@ -191,12 +187,13 @@ def train_pointnet():
         )
 
     # Train the model.
-    history = model_pointnet.fit(
-        x_input_train, y_output_train,
+    history = model_pointnet.fit_generator(
+        generator_pointclouds_train,
+        steps_per_epoch=steps_per_epoch,
         epochs=epochs,
-        validation_data=(x_input_test, y_output_test),
-        callbacks=[tensorboard_callback],
-        batch_size=4
+        validation_data=generator_pointclouds_validate,
+        validation_steps=validation_steps,
+        callbacks=[tensorboard_callback]
         )
 
     histories["pointnet"] = history

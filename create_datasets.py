@@ -1,6 +1,11 @@
+'''
+Creates a preprocessed dataset with the OLD (!) datagenerator. This means that the store- and db-data from the mobile apps are processed directly.
+
+Important note: This sourcecode is only here for historical purposes. Once everything is stable again it will be archived.
+'''
+
 # Dataset-Generator.
 import os
-#from cgmcore import datagenerator
 from cgmcore.datagenerator import DataGenerator, get_dataset_path, create_datagenerator_from_parameters
 from cgmcore import utils
 import pickle

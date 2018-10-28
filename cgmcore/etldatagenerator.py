@@ -7,10 +7,11 @@ import random
 #import keras.preprocessing.image as image_preprocessing
 import progressbar
 from pyntcloud import PyntCloud
+import shutil
 #import matplotlib.pyplot as plt
 #import multiprocessing as mp
 #import uuid
-#import pickle
+import pickle
 from . import utils
 
 
@@ -236,16 +237,16 @@ class ETLDataGenerator(object):
 
             else:
                 raise Exception("Unexpected value for 'multiprocessing_jobs' " + str(multiprocessing_jobs))
-        
+                
 
     def _load_pointcloud(self, pcd_path, preprocess=True, augmentation=True):
 
         pointcloud = self.pointcloud_cache.get(pcd_path, [])
         if pointcloud == []:
             pointcloud = PyntCloud.from_file(pcd_path).points.values
-            pointcloud = np.array(pointcloud)
 
             if self.pointcloud_target_size != None and preprocess == True:
+                pointcloud = np.array(pointcloud)[:,0:3] # Drop confidence.
                 pointcloud = pointcloud[:self.pointcloud_target_size]
                 if len(pointcloud) < self.pointcloud_target_size:
                     zeros = np.zeros((self.pointcloud_target_size - len(pointcloud), 4))
