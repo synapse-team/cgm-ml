@@ -1,3 +1,9 @@
+'''
+This is a data-generator that works on the raw data. The raw data is the data that is created by the mobile app.
+
+Note: This file is only here for historical reasons. And it might be gone anytime.
+'''
+
 from __future__ import absolute_import
 import os
 import numpy as np

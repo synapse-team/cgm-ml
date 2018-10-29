@@ -1,3 +1,8 @@
+'''
+This file contains a data-generator that works on the data as it is provided by the ETL.
+'''
+
+
 from cgmcore import modelutils
 from cgmcore import utils
 import pickle

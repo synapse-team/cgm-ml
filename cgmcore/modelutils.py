@@ -1,11 +1,14 @@
 """
-Helper module for instaniating some Neural Networks.
+Helper module for Neural Networks.
 """
 
 from keras import models, layers
 from keras import backend as K
 import numpy as np
 import tensorflow as tf
+from .utils import get_datetime_string
+import os
+import pickle
 
 def create_multiview_model(base_model, multiviews_num, input_shape, output_size, use_lstm):
 
@@ -239,3 +242,32 @@ def create_point_net(input_shape, output_size):
 
     model = models.Model(inputs=input_points, outputs=prediction)
     return model
+
+
+# Method for saving model and history.
+def save_model_and_history(output_path, model, history, name):
+
+    print("Saving model and history...")
+
+    datetime_string = get_datetime_string()
+
+    # Try to save model. Could fail.
+    try:
+        model_name = datetime_string + "-" + name + "-model.h5"
+        model_path = os.path.join(output_path, model_name)
+        model.save(model_path)
+        print("Saved model to" + model_name)
+    except Exception as e:
+        print("WARNING! Failed to save model. Use model-weights instead.")
+
+    # Save the model weights.
+    model_weights_name = datetime_string + "-" + name + "-model-weights.h5"
+    model_weights_path = os.path.join(output_path, model_weights_name)
+    model.save_weights(model_weights_path)
+    print("Saved model weights to" + model_name)
+
+    # Save the history.
+    history_name = datetime_string + "-" + name + "-history.p"
+    history_path = os.path.join(output_path, history_name)
+    pickle.dump(history.history, open(history_path, "wb"))
+    print("Saved history to" + history_name)
