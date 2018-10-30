@@ -9,7 +9,6 @@ import glob2
 import json
 from etl.data_reader import DataReader
 from etl.data_writer import DataWriter
-from etl.data_loader import DataLoaderFactory
 import configparser
 import datetime
 
@@ -41,7 +40,7 @@ class ETL:
     def run(self):
         log.info("ETL: RUN")
         log.info("Create qr code dictionary")
-        qrcode_dict = self.data_reader.create_qrcodes_dictionary()
+        qrcode_dict = self.data_reader.process_measure_files()
         log.info("Created qr code dictionary. Number of qr codes = %d" %
                  len(qrcode_dict))
         # push each qr code to a queue
