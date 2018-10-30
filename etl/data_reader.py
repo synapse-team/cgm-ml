@@ -61,32 +61,32 @@ class DataReader:
 
     def process_storage(self):
         # loop through storage
-        qrcode_path_1 = os.path.join(self.dataset_path, 'storage', 'person',
-                                     '[A-Z][A-Z][A-Z]-*')
-        qrcode_path_2 = os.path.join(self.dataset_path, 'storage', 'person',
-                                     '[A-Z][A-Z][A-Z]_*')
-        path_patterns = [qrcode_path_1, qrcode_path_2]
+        #qrcode_path_1 = os.path.join(self.dataset_path, 'storage', 'person', '[A-Z][A-Z][A-Z]-*')
+        #qrcode_path_2 = os.path.join(self.dataset_path, 'storage', 'person', '[A-Z][A-Z][A-Z]_*')
+        qrcode_path = os.path.join(self.dataset_path, 'storage', 'person')
 
-        for p_pattern in path_patterns:
-            for a in glob2.glob(p_pattern):
-                qr_code = os.path.basename(a)
-                # process each timestamp inisde and get all the jpg and pcd paths
-                measurement_path = os.path.join(a, 'measurements')
-                if not os.path.exists(measurement_path):
-                    log.warning("Ignoring qrcode without measurements path %s"
-                                % qr_code)
-                    continue
-                code = QR(qr_code)
-                for ts in os.listdir(measurement_path):
-                    pcd_pattern = os.path.join(measurement_path, ts, "**/*.pcd")
-                    jpg_pattern = os.path.join(measurement_path, ts, "**/*.jpg")
-                    pcd_paths = list(glob2.glob(pcd_pattern))
-                    jpg_paths = list(glob2.glob(jpg_pattern))
+        for qr_code in os.listdir(qrcode_path):
+            log.info("Processing qr code %s" % qr_code)
+            if 'test' in qr_code.lower():
+                log.info("Ignoring test qr code %s" % qr_code)
+                continue
+            # process each timestamp inisde and get all the jpg and pcd paths
+            measurement_path = os.path.join(qrcode_path, qr_code, 'measurements')
+            if not os.path.exists(measurement_path):
+                log.warning("Ignoring qrcode without measurements path %s"
+                            % qr_code)
+                continue
+            code = QR(qr_code)
+            for ts in os.listdir(measurement_path):
+                pcd_pattern = os.path.join(measurement_path, ts, "**/*.pcd")
+                jpg_pattern = os.path.join(measurement_path, ts, "**/*.jpg")
+                pcd_paths = list(glob2.glob(pcd_pattern))
+                jpg_paths = list(glob2.glob(jpg_pattern))
 
-                    code.add_timestamp(ts, jpg_paths, pcd_paths)
+                code.add_timestamp(ts, jpg_paths, pcd_paths)
 
-                self.qr_storage_dict[qr_code] = code
-                log.info("Processed storage data for qrcode %s" % qr_code)
+            self.qr_storage_dict[qr_code] = code
+            log.info("Processed storage data for qrcode %s" % qr_code)
         log.info("Completed processing storage data")
 
     def process_person_id_qrcde(self):
