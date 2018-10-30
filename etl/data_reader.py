@@ -72,10 +72,11 @@ class DataReader:
                 log.info("Ignoring test qr code %s" % qr_code)
                 continue
             # process each timestamp inisde and get all the jpg and pcd paths
-            measurement_path = os.path.join(qrcode_path, qr_code, 'measurements')
+            measurement_path = os.path.join(qrcode_path, qr_code,
+                                            'measurements')
             if not os.path.exists(measurement_path):
-                log.warning("Ignoring qrcode without measurements path %s"
-                            % qr_code)
+                log.warning(
+                    "Ignoring qrcode without measurements path %s" % qr_code)
                 continue
             code = QR(qr_code)
             for ts in os.listdir(measurement_path):
@@ -145,15 +146,15 @@ class DataReader:
             qrcode = self.get_qr_code(json_data_measure)
             if qrcode is None:
                 process_counter['ignored_qr_not_found'] += 1
-                log.warning('measure file %s Ignored without matching qr code'
-                            % mfile)
+                log.warning(
+                    'measure file %s Ignored without matching qr code' % mfile)
                 continue
 
             if not self.is_measure_manual(json_data_measure):
                 process_counter['ignored_measure_not_manual'] += 1
                 log.warning(
-                    "QR code %s measure file %s Ignored with measure != manual " %
-                    (qrcode, mfile))
+                    "QR code %s measure file %s Ignored with measure != manual "
+                    % (qrcode, mfile))
                 continue
 
             measure_timestamp = self.get_measure_timestamp(json_data_measure)
@@ -165,8 +166,8 @@ class DataReader:
             if matching_files is None:
                 process_counter['ignored_pc_not_matched'] += 1
                 log.warning(
-                    "QR code %s measure file %s Ignored Without matching pc files " %
-                    (qrcode, mfile))
+                    "QR code %s measure file %s Ignored Without matching pc files "
+                    % (qrcode, mfile))
                 continue
             jpg_paths = matching_files['jpg_paths']
             pcd_paths = matching_files['pcd_paths']
@@ -183,3 +184,4 @@ class DataReader:
 
         log.info("Total number of qr codes %d " % len(qrcodes_dictionary))
         log.info("Total processing counters %s " % str(process_counter))
+        return qrcodes_dictionary
