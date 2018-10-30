@@ -87,9 +87,11 @@ class DataReader:
 
                 self.qr_storage_dict[qr_code] = code
                 log.info("Processed storage data for qrcode %s" % qr_code)
+        log.info("Completed processing storage data")
 
     def process_person_id_qrcde(self):
-        path = os.path.join(self.dataset_path, 'db', 'persons', '**/*.json')
+        log.info("Process process_person_id_qrcde")
+        path = os.path.join(self.dataset_path, 'db', 'persons', '*/*.json')
 
         for pid in glob2.glob(path):
             try:
@@ -152,8 +154,8 @@ class DataReader:
                                                       measure_timestamp)
             if matching_files is None:
                 log.warning(
-                    "Ignoring measure file %s without matching pc files " %
-                    mfile)
+                    "QR code %s measure file %s Ignored Without matching pc files " %
+                    (qrcode, mfile))
                 continue
             jpg_paths = matching_files['jpg_paths']
             pcd_paths = matching_files['pcd_paths']
