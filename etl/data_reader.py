@@ -41,6 +41,7 @@ class DataReader:
         self.output_targets = output_targets
         self.qr_storage_dict = {}
         self.person_id_qr_dict = {}
+        self.initialize()
 
     def initialize(self):
         self.process_storage()
