@@ -77,9 +77,9 @@ class DataReader:
                                 % qr_code)
                     continue
                 code = QR(qr_code)
-                for ts in os.listdir(p):
-                    pcd_pattern = os.path.join(p, ts, "**/*.pcd")
-                    jpg_pattern = os.path.join(p, ts, "**/*.jpg")
+                for ts in os.listdir(measurement_path):
+                    pcd_pattern = os.path.join(measurement_path, ts, "**/*.pcd")
+                    jpg_pattern = os.path.join(measurement_path, ts, "**/*.jpg")
                     pcd_paths = list(glob2.glob(pcd_pattern))
                     jpg_paths = list(glob2.glob(jpg_pattern))
 
