@@ -93,6 +93,6 @@ def train_pointnet():
         )
 
     histories["pointnet"] = history
-    modelutils.save_model_and_history(model_pointnet, history, "pointnet")
+    modelutils.save_model_and_history(output_path, model_pointnet, history, "pointnet")
 
 train_pointnet()
