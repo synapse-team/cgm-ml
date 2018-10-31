@@ -332,13 +332,13 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, output_queue):
 
         # Get the input. Not dealing with sequences.
         if class_self.sequence_length == 0:
-            preprocessed_path = random.choice(class_self.qrcodes_dictionary[qrcode])
-            with open(preprocessed_path, "rb") as file:
-                (pointcloud, targets) = pickle.load(file)
-            
-            x_input = get_input(class_self, pointcloud)
-            
-            y_output = targets
+            if len(class_self.qrcodes_dictionary[qrcode]) > 0:
+                preprocessed_path = random.choice(class_self.qrcodes_dictionary[qrcode])
+                with open(preprocessed_path, "rb") as file:
+                    (pointcloud, targets) = pickle.load(file)
+
+                x_input = get_input(class_self, pointcloud)
+                y_output = targets
 
         # Get the input. Dealing with sequences here.
         else:

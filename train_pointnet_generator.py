@@ -10,9 +10,9 @@ import os
 from cgmcore.preprocesseddatagenerator import get_dataset_path, create_datagenerator_from_parameters
 import random
 
-
 # Get the dataset path.
 dataset_path = get_dataset_path()
+print("Using dataset path", dataset_path)
 
 # Hyperparameters.
 steps_per_epoch = 100
@@ -20,8 +20,6 @@ validation_steps = 10
 epochs = 100
 batch_size = 8
 random_seed = 667
-
-# Create some generators.
 
 # For creating pointclouds.
 dataset_parameters_pointclouds = {}
@@ -32,7 +30,6 @@ dataset_parameters_pointclouds["pointcloud_target_size"] = 10000
 dataset_parameters_pointclouds["pointcloud_random_rotation"] = False
 dataset_parameters_pointclouds["sequence_length"] = 0
 datagenerator_instance_pointclouds = create_datagenerator_from_parameters(dataset_path, dataset_parameters_pointclouds)
-
 
 # Do the split.
 random.seed(random_seed)
@@ -55,6 +52,18 @@ def test_generator(generator):
     print("Input:", data[0].shape, "Output:", data[1].shape)
 test_generator(generator_pointclouds_train)
 test_generator(generator_pointclouds_validate)
+
+# Training details.
+training_details = {
+    "dataset_path" : dataset_path,
+    "qrcodes_train" : qrcodes_train,
+    "qrcodes_validate" : qrcodes_validate,
+    "steps_per_epoch" : steps_per_epoch,
+    "validation_steps" : validation_steps,
+    "epochs" : epochs,
+    "batch_size" : batch_size,
+    "random_seed" : random_seed,
+}
 
 # Output path. Ensure its existence.
 output_path = "models"
@@ -93,6 +102,6 @@ def train_pointnet():
         )
 
     histories["pointnet"] = history
-    modelutils.save_model_and_history(output_path, model_pointnet, history, "pointnet")
+    modelutils.save_model_and_history(output_path, model_pointnet, history, training_details, "pointnet")
 
 train_pointnet()

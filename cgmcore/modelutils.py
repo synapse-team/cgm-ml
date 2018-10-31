@@ -245,7 +245,7 @@ def create_point_net(input_shape, output_size):
 
 
 # Method for saving model and history.
-def save_model_and_history(output_path, model, history, name):
+def save_model_and_history(output_path, model, history, training_details, name):
 
     print("Saving model and history...")
 
@@ -256,7 +256,7 @@ def save_model_and_history(output_path, model, history, name):
         model_name = datetime_string + "-" + name + "-model.h5"
         model_path = os.path.join(output_path, model_name)
         model.save(model_path)
-        print("Saved model to" + model_name)
+        print("Saved model to" + model_path)
     except Exception as e:
         print("WARNING! Failed to save model. Use model-weights instead.")
 
@@ -264,10 +264,16 @@ def save_model_and_history(output_path, model, history, name):
     model_weights_name = datetime_string + "-" + name + "-model-weights.h5"
     model_weights_path = os.path.join(output_path, model_weights_name)
     model.save_weights(model_weights_path)
-    print("Saved model weights to" + model_name)
+    print("Saved model weights to" + model_weights_path)
 
+    # Save the training details.
+    training_details_name = datetime_string + "-" + name + "-details.p"
+    training_details_path = os.path.join(output_path, training_details_name)
+    pickle.dump(training_details, open(training_details_path, "wb"))
+    print("Saved training details to" + training_details_path)
+    
     # Save the history.
     history_name = datetime_string + "-" + name + "-history.p"
     history_path = os.path.join(output_path, history_name)
     pickle.dump(history.history, open(history_path, "wb"))
-    print("Saved history to" + history_name)
+    print("Saved history to" + history_path)
