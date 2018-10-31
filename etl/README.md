@@ -7,4 +7,4 @@ Requirements
 
 How to run
 
-`python3 etl.py etl/config.ini | tee /srv/data/etl/20181030-1954_etl.log`
+```python etl.py etl/config.ini | tee /srv/data/etl/`date '+%Y%m%d-%H%M'`_etl.log```
