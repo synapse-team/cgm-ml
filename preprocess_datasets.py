@@ -98,7 +98,8 @@ def get_qrcodes_dictionary(qrcodes):
         for measurement_path in measurement_paths:
             # Getting PCDs.
             pcd_paths = glob.glob(os.path.join(measurement_path, "pcd", "*.pcd"))
-            assert len(pcd_paths) > 0 , measurement_path
+            if len(pcd_paths) == 0:
+                continue
             
             # Getting JPGs.
             jpg_paths = glob.glob(os.path.join(measurement_path, "jpg", "*.jpg"))

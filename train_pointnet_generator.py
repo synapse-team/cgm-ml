@@ -9,6 +9,7 @@ import pprint
 import os
 from cgmcore.preprocesseddatagenerator import get_dataset_path, create_datagenerator_from_parameters
 import random
+import qrcodes
 
 # Get the dataset path.
 dataset_path = get_dataset_path()
@@ -31,9 +32,13 @@ dataset_parameters_pointclouds["pointcloud_random_rotation"] = False
 dataset_parameters_pointclouds["sequence_length"] = 0
 datagenerator_instance_pointclouds = create_datagenerator_from_parameters(dataset_path, dataset_parameters_pointclouds)
 
+# Get the QR-codes.
+#qrcodes_to_use = datagenerator_instance_pointclouds.qrcodes[:]
+qrcodes_to_use = qrcodes.standing_list
+
 # Do the split.
 random.seed(random_seed)
-qrcodes_shuffle = datagenerator_instance_pointclouds.qrcodes[:]
+qrcodes_shuffle = qrcodes_to_use[:]
 random.shuffle(qrcodes_shuffle)
 split_index = int(0.8 * len(qrcodes_shuffle))
 qrcodes_train = sorted(qrcodes_shuffle[:split_index])
@@ -87,7 +92,7 @@ def train_pointnet():
      # Compile the model.
     model_pointnet.compile(
             optimizer="rmsprop",
-            loss="mse",
+            loss="mae",
             metrics=["mae"]
         )
 
