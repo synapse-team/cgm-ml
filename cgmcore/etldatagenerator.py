@@ -322,13 +322,13 @@ def create_datagenerator_from_parameters(dataset_path, dataset_parameters):
     return datagenerator
 
 
-def get_dataset_path():
+def get_dataset_path(root_path="../data/etl"):
     if os.path.exists("etldatasetpath.txt"):
         with open("etldatasetpath.txt", "r") as file:
             dataset_path = file.read().replace("\n", "")
     else:
         # Finding the latest.
-        dataset_paths = glob.glob("../data/etl/*")
+        dataset_paths = glob.glob(os.path.join(root_path, "*"))
         dataset_paths = [dataset_path for dataset_path in dataset_paths if os.path.isdir(dataset_path)]
         dataset_path = sorted(dataset_paths)[-1]
 

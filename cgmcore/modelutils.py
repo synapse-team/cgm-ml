@@ -159,7 +159,7 @@ def create_voxnet_model_homepage(input_shape, output_size):
     return model
 
 
-def create_point_net(input_shape, output_size):
+def create_point_net(input_shape, output_size, hidden_sizes = [512, 256]):
     """
     Creates a PointNet.
 
@@ -230,13 +230,12 @@ def create_point_net(input_shape, output_size):
     global_feature = layers.MaxPooling1D(pool_size=num_points)(g)
 
     # point_net_cls
-    c = layers.Dense(512, activation='relu')(global_feature)
-    c = layers.BatchNormalization()(c)
-    c = layers.Dropout(rate=0.7)(c)
-    c = layers.Dense(256, activation='relu')(c)
-    c = layers.BatchNormalization()(c)
-    c = layers.Dropout(rate=0.7)(c)
-    #c = layers.Dense(k, activation='softmax')(c)
+    c = global_feature
+    for hidden_size in hidden_sizes:
+        c = layers.Dense(hidden_size, activation='relu')(c)
+        c = layers.BatchNormalization()(c)
+        c = layers.Dropout(rate=0.7)(c)
+    
     c = layers.Dense(output_size, activation='linear')(c)
     prediction = layers.Flatten()(c)
 

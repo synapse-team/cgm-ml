@@ -86,13 +86,13 @@ def train_pointnet():
 
     input_shape = (dataset_parameters_pointclouds["pointcloud_target_size"], 3)
     output_size = 1
-    model_pointnet = modelutils.create_point_net(input_shape, output_size)
+    model_pointnet = modelutils.create_point_net(input_shape, output_size, hidden_sizes = [512, 256, 128])
     model_pointnet.summary()
-
-     # Compile the model.
+    
+    # Compile the model.
     model_pointnet.compile(
             optimizer="rmsprop",
-            loss="mae",
+            loss="mse",
             metrics=["mae"]
         )
 
