@@ -184,6 +184,7 @@ def get_latest_model(path=".", filter=""):
         raise Exception("No models found for filter " + filter + " at path " + os.path.abspath(path))
     return sorted(paths)[-1]
 
+
 def pointcloud_to_rgb_map(original_pointcloud, target_width=512, target_height=512, scale_factor=1.5):
     '''
     Maps a pointcloud to a RGB-image. Stores height, density and intensity as separate channels.
@@ -224,12 +225,7 @@ def pointcloud_to_rgb_map(original_pointcloud, target_width=512, target_height=5
     intensity_map = np.zeros((target_width, target_height))
     intensity_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = intensities
     intensity_map /= target_width
-    
-    # Analyze.
-    print("height", np.min(height_map), np.mean(height_map), np.max(height_map))
-    print("density", np.min(density_map), np.mean(density_map), np.max(density_map))
-    print("intensity", np.min(intensity_map), np.mean(intensity_map), np.max(intensity_map))
-    
+        
     # Compose the RGB-map.
     rgb_map = np.zeros((target_width, target_height, 3))
     rgb_map[:,:,0] = height_map 

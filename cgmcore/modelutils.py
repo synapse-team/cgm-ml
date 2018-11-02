@@ -243,6 +243,22 @@ def create_point_net(input_shape, output_size, hidden_sizes = [512, 256]):
     return model
 
 
+def create_dense_net(input_shape, output_size, hidden_sizes = []):
+    
+    model = models.Sequential()
+    
+    # Input layer.
+    model.add(layers.Flatten(input_shape=input_shape))
+    
+    for hidden_size in hidden_sizes:
+        model.add(layers.Dense(hidden_size, activation="relu"))
+    
+    # Output layer.
+    model.add(layers.Dense(output_size))
+    
+    return model
+
+
 # Method for saving model and history.
 def save_model_and_history(output_path, model, history, training_details, name):
 
