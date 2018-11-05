@@ -10,6 +10,8 @@ This project uses machine learning to identify malnutrition from 3D scans of chi
 
 ## Getting started
 
+As a first step, please make sure that you work with all the notebooks provided in the skel-folder. This will give you a quick and thourough introduction to the current state-of-the-implementation.
+
 ### Requirements
 Training the models realistically requires using GPU computation. A separate backend project is currently developing the DevOps infrastructure to simplify this.
 

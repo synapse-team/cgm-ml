@@ -11,6 +11,7 @@ try:
 except Exception as e:
     print("WARNING! VTK not available. This might limit the functionality.") 
 from pyntcloud import PyntCloud
+import pickle
 
     
 def load_pcd_as_ndarray(pcd_path):
@@ -262,3 +263,45 @@ def show_rgb_map_channel(data, title, cmap=None):
     fig.axes.get_xaxis().set_visible(False)
     fig.axes.get_yaxis().set_visible(False)
     plt.title(title)
+    
+def find_timestamps_of_trained_models(root_path):
+    '''
+    Extracts the timestamps. Different timestamps will represent different models/trainings.
+    '''
+    all_paths = find_all_history_paths(root_path)
+    date_times = []
+    for path in all_paths:
+        split = path.split("/")[-1].split("-")
+        date = split[0]
+        time = split[1]
+        date_time = date + "-" + time
+        date_times.append(date_time)
+    date_times = sorted(list(set(date_times)))
+    return date_times
+
+
+def plot_date_times(date_times, all_history_paths, start_index, end_index = 100090, key_suffix=None):
+    for date_time in date_times:
+
+        # Load all histories for date-time.
+        history_paths = [history_path for history_path in all_history_paths if date_time in history_path]
+        histories = []
+        for history_path in history_paths:
+            history = pickle.load(open(history_path, "rb"))
+            histories.append(history)
+
+        # Plot the histories.
+        for history, history_path in zip(histories, history_paths):
+            split = history_path.split("/")[-1].split("-")
+            for key in history.keys():
+                if key_suffix != None and key_suffix in key:
+                    plt.plot(history[key][start_index:end_index], label=key + " " + split[2] + " " + date_time)
+    plt.legend()
+    plt.show()
+    plt.close()
+
+    
+def find_all_history_paths(root_path):
+    all_paths = glob.glob(os.path.join(root_path, "*.p"))
+    history_paths = [path for path in all_paths if "history" in path]
+    return history_paths
