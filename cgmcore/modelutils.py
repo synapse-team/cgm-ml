@@ -159,7 +159,7 @@ def create_voxnet_model_homepage(input_shape, output_size):
     return model
 
 
-def create_point_net(input_shape, output_size):
+def create_point_net(input_shape, output_size, hidden_sizes = [512, 256]):
     """
     Creates a PointNet.
 
@@ -230,13 +230,12 @@ def create_point_net(input_shape, output_size):
     global_feature = layers.MaxPooling1D(pool_size=num_points)(g)
 
     # point_net_cls
-    c = layers.Dense(512, activation='relu')(global_feature)
-    c = layers.BatchNormalization()(c)
-    c = layers.Dropout(rate=0.7)(c)
-    c = layers.Dense(256, activation='relu')(c)
-    c = layers.BatchNormalization()(c)
-    c = layers.Dropout(rate=0.7)(c)
-    #c = layers.Dense(k, activation='softmax')(c)
+    c = global_feature
+    for hidden_size in hidden_sizes:
+        c = layers.Dense(hidden_size, activation='relu')(c)
+        c = layers.BatchNormalization()(c)
+        c = layers.Dropout(rate=0.7)(c)
+    
     c = layers.Dense(output_size, activation='linear')(c)
     prediction = layers.Flatten()(c)
 
@@ -244,8 +243,24 @@ def create_point_net(input_shape, output_size):
     return model
 
 
+def create_dense_net(input_shape, output_size, hidden_sizes = []):
+    
+    model = models.Sequential()
+    
+    # Input layer.
+    model.add(layers.Flatten(input_shape=input_shape))
+    
+    for hidden_size in hidden_sizes:
+        model.add(layers.Dense(hidden_size, activation="relu"))
+    
+    # Output layer.
+    model.add(layers.Dense(output_size))
+    
+    return model
+
+
 # Method for saving model and history.
-def save_model_and_history(output_path, model, history, name):
+def save_model_and_history(output_path, model, history, training_details, name):
 
     print("Saving model and history...")
 
@@ -256,7 +271,7 @@ def save_model_and_history(output_path, model, history, name):
         model_name = datetime_string + "-" + name + "-model.h5"
         model_path = os.path.join(output_path, model_name)
         model.save(model_path)
-        print("Saved model to" + model_name)
+        print("Saved model to" + model_path)
     except Exception as e:
         print("WARNING! Failed to save model. Use model-weights instead.")
 
@@ -264,10 +279,16 @@ def save_model_and_history(output_path, model, history, name):
     model_weights_name = datetime_string + "-" + name + "-model-weights.h5"
     model_weights_path = os.path.join(output_path, model_weights_name)
     model.save_weights(model_weights_path)
-    print("Saved model weights to" + model_name)
+    print("Saved model weights to" + model_weights_path)
 
+    # Save the training details.
+    training_details_name = datetime_string + "-" + name + "-details.p"
+    training_details_path = os.path.join(output_path, training_details_name)
+    pickle.dump(training_details, open(training_details_path, "wb"))
+    print("Saved training details to" + training_details_path)
+    
     # Save the history.
     history_name = datetime_string + "-" + name + "-history.p"
     history_path = os.path.join(output_path, history_name)
     pickle.dump(history.history, open(history_path, "wb"))
-    print("Saved history to" + history_name)
+    print("Saved history to" + history_path)

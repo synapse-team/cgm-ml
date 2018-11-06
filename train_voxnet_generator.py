@@ -10,9 +10,9 @@ import os
 from cgmcore.etldatagenerator import get_dataset_path, create_datagenerator_from_parameters
 import random
 
-
 # Get the dataset path.
 dataset_path = get_dataset_path()
+print("Using dataset path", dataset_path)
 
 # Hyperparameters.
 steps_per_epoch = 100
@@ -54,6 +54,18 @@ def test_generator(generator):
 #test_generator(generator_voxelgrids_train)
 #test_generator(generator_voxelgrids_validate)
 
+# Training details.
+training_details = {
+    "dataset_path" : dataset_path,
+    "qrcodes_train" : qrcodes_train,
+    "qrcodes_validate" : qrcodes_validate,
+    "steps_per_epoch" : steps_per_epoch,
+    "validation_steps" : validation_steps,
+    "epochs" : epochs,
+    "batch_size" : batch_size,
+    "random_seed" : random_seed,
+}
+
 # Output path. Ensure its existence.
 output_path = "models"
 if os.path.exists(output_path) == False:
@@ -91,6 +103,6 @@ def train_voxnet():
         callbacks=[tensorboard_callback]
         )
 
-    modelutils.save_model_and_history(output_path, model_voxnet, history, "voxnet")
+    modelutils.save_model_and_history(output_path, model_voxnet, history, training_details, "voxnet")
 
 train_voxnet()

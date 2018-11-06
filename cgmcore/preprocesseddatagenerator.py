@@ -36,7 +36,10 @@ class PreprocessedDataGenerator(object):
         voxel_size_meters=0.01,
         voxelgrid_random_rotation=False,
         pointcloud_target_size=32000,
-        pointcloud_random_rotation=False
+        pointcloud_random_rotation=False,
+        rgbmap_target_width=512, 
+        rgbmap_target_height=512, 
+        rgbmap_scale_factor=1.5
         ):
         """
         Initializes a DataGenerator.
@@ -75,7 +78,10 @@ class PreprocessedDataGenerator(object):
         self.voxelgrid_random_rotation = voxelgrid_random_rotation
         self.pointcloud_target_size = pointcloud_target_size
         self.pointcloud_random_rotation = pointcloud_random_rotation
-
+        self.rgbmap_target_width = rgbmap_target_width
+        self.rgbmap_target_height = rgbmap_target_height
+        self.rgbmap_scale_factor = rgbmap_scale_factor
+        
         # Find all QR-codes.
         self._find_qrcodes()
         assert self.qrcodes != [], "No QR-codes found!"
@@ -287,19 +293,22 @@ def create_datagenerator_from_parameters(dataset_path, dataset_parameters):
         voxel_size_meters=dataset_parameters.get("voxel_size_meters", None),
         voxelgrid_random_rotation=dataset_parameters.get("voxelgrid_random_rotation", None),
         pointcloud_target_size=dataset_parameters.get("pointcloud_target_size", None),
-        pointcloud_random_rotation=dataset_parameters.get("pointcloud_random_rotation", None)
+        pointcloud_random_rotation=dataset_parameters.get("pointcloud_random_rotation", None),
+        rgbmap_target_width=dataset_parameters.get("rgbmap_target_width", None),
+        rgbmap_target_height=dataset_parameters.get("rgbmap_target_height", None),
+        rgbmap_scale_factor=dataset_parameters.get("rgbmap_scale_factor", None),
     )
     #datagenerator.print_statistics()
     return datagenerator
 
 
-def get_dataset_path():
+def get_dataset_path(root_path="../data/preprocessed"):
     if os.path.exists("etldatasetpath.txt"):
         with open("etldatasetpath.txt", "r") as file:
             dataset_path = file.read().replace("\n", "")
     else:
         # Finding the latest.
-        dataset_paths = glob.glob("../data/preprocessed/*")
+        dataset_paths = glob.glob(os.path.join(root_path, "*"))
         dataset_paths = [dataset_path for dataset_path in dataset_paths if os.path.isdir(dataset_path)]
         dataset_path = sorted(dataset_paths)[-1]
 
@@ -332,13 +341,13 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, output_queue):
 
         # Get the input. Not dealing with sequences.
         if class_self.sequence_length == 0:
-            preprocessed_path = random.choice(class_self.qrcodes_dictionary[qrcode])
-            with open(preprocessed_path, "rb") as file:
-                (pointcloud, targets) = pickle.load(file)
-            
-            x_input = get_input(class_self, pointcloud)
-            
-            y_output = targets
+            if len(class_self.qrcodes_dictionary[qrcode]) > 0:
+                preprocessed_path = random.choice(class_self.qrcodes_dictionary[qrcode])
+                with open(preprocessed_path, "rb") as file:
+                    (pointcloud, targets) = pickle.load(file)
+
+                x_input = get_input(class_self, pointcloud)
+                y_output = targets
 
         # Get the input. Dealing with sequences here.
         else:
@@ -407,8 +416,18 @@ def get_input(class_self, pointcloud):
         pointcloud = class_self._subsample_pointcloud(pointcloud)
         x_input = pointcloud
   
+    # Get a random pointcloud.
+    elif class_self.input_type == "rgbmap":
+        rgb_map = utils.pointcloud_to_rgb_map(
+            pointcloud, 
+            class_self.rgbmap_target_width, 
+            class_self.rgbmap_target_height,
+            class_self.rgbmap_scale_factor
+        )
+        x_input = rgb_map
+
     # Should not happen.
     else:
-        raise Exception("Unknown input_type: " + input_type)
+        raise Exception("Unknown input_type: " + class_self.input_type)
 
     return x_input
