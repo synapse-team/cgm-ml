@@ -39,7 +39,8 @@ class PreprocessedDataGenerator(object):
         pointcloud_random_rotation=False,
         rgbmap_target_width=512, 
         rgbmap_target_height=512, 
-        rgbmap_scale_factor=1.5
+        rgbmap_scale_factor=1.5,
+        rgbmap_axis = "vertical"
         ):
         """
         Initializes a DataGenerator.
@@ -81,6 +82,7 @@ class PreprocessedDataGenerator(object):
         self.rgbmap_target_width = rgbmap_target_width
         self.rgbmap_target_height = rgbmap_target_height
         self.rgbmap_scale_factor = rgbmap_scale_factor
+        self.rgbmap_axis = rgbmap_axis
         
         # Find all QR-codes.
         self._find_qrcodes()
@@ -297,6 +299,7 @@ def create_datagenerator_from_parameters(dataset_path, dataset_parameters):
         rgbmap_target_width=dataset_parameters.get("rgbmap_target_width", None),
         rgbmap_target_height=dataset_parameters.get("rgbmap_target_height", None),
         rgbmap_scale_factor=dataset_parameters.get("rgbmap_scale_factor", None),
+        rgbmap_axis=dataset_parameters.get("rgbmap_axis", None),
     )
     #datagenerator.print_statistics()
     return datagenerator
@@ -422,7 +425,8 @@ def get_input(class_self, pointcloud):
             pointcloud, 
             class_self.rgbmap_target_width, 
             class_self.rgbmap_target_height,
-            class_self.rgbmap_scale_factor
+            class_self.rgbmap_scale_factor,
+            class_self.rgbmap_axis
         )
         x_input = rgb_map
 

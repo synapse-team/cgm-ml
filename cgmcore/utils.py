@@ -186,54 +186,170 @@ def get_latest_model(path=".", filter=""):
     return sorted(paths)[-1]
 
 
-def pointcloud_to_rgb_map(original_pointcloud, target_width=512, target_height=512, scale_factor=1.5):
+def pointcloud_to_rgb_map(original_pointcloud, target_width=512, target_height=512, scale_factor=1.5, axis='vertical'):
     '''
     Maps a pointcloud to a RGB-image. Stores height, density and intensity as separate channels.
     '''
-    
-    # Transform to pixel-space.
-    scale = np.array([target_width / scale_factor, target_width / scale_factor, target_width / scale_factor, target_width / scale_factor]) # TODO is this okay?
-    translate = np.array([target_width / 2, target_height / 2, 0.0, 0.0])
-    pointcloud = original_pointcloud * scale + translate
-    
-    # Crop the pointcloud.
-    crop_mask = np.where(
-        (pointcloud[:, 0] >= 0) & 
-        (pointcloud[:, 0] < target_width) & 
-        (pointcloud[:, 1] >= 0) & 
-        (pointcloud[:, 1] < target_height))
-    pointcloud = pointcloud[crop_mask]
-    
-    # Get indices and counts.
-    _, indices, counts = np.unique(pointcloud[:,0:2], axis=0, return_index=True, return_counts = True)
-    
-    # Get unique pixel coordinates.
-    pixel_coordinates = np.int_(np.array([[x, y] for x, y, _, _ in pointcloud[indices]]))
-
-    # Create the height map.
-    heights = pointcloud[indices][:,2]
-    height_map = np.zeros((target_width, target_height))
-    height_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = heights
-    height_map /= target_width
-    
-    # Create the density map.
-    densities = np.minimum(1.0, np.log(counts + 1)/np.log(64))
-    density_map = np.zeros((target_width, target_height))
-    density_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = densities
-    
-    # Create the intensity map.
-    intensities = pointcloud[indices][:,3]
-    intensity_map = np.zeros((target_width, target_height))
-    intensity_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = intensities
-    intensity_map /= target_width
+    if axis=='horizontal':
         
-    # Compose the RGB-map.
-    rgb_map = np.zeros((target_width, target_height, 3))
-    rgb_map[:,:,0] = height_map 
-    rgb_map[:,:,1] = density_map
-    rgb_map[:,:,2] = intensity_map
+        # Transform to pixel-space.
+        scale = np.array([target_width / scale_factor, target_width / scale_factor, target_width / scale_factor, target_width / scale_factor]) # TODO is this okay?
+        translate = np.array([target_width / 2, target_height / 2, 0.0, 0.0])
+        pointcloud = original_pointcloud * scale + translate
+
+        # Crop the pointcloud.
+        crop_mask = np.where(
+            (pointcloud[:, 0] >= 0) & 
+            (pointcloud[:, 0] < target_width) & 
+            (pointcloud[:, 1] >= 0) & 
+            (pointcloud[:, 1] < target_height))
+        pointcloud = pointcloud[crop_mask]
+
+        # Get indices and counts.
+        _, indices, counts = np.unique(pointcloud[:,0:2], axis=0, return_index=True, return_counts = True)
+
+        # Get unique pixel coordinates.
+        pixel_coordinates = np.int_(np.array([[x, y] for x, y, _, _ in pointcloud[indices]]))
+
+        # Create the height map.
+        heights = pointcloud[indices][:,2]
+        height_map = np.zeros((target_width, target_height))
+        height_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = heights
+        height_map /= target_width
+
+        # Create the density map.
+        densities = np.minimum(1.0, np.log(counts + 1)/np.log(64))
+        density_map = np.zeros((target_width, target_height))
+        density_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = densities
+
+        # Create the intensity map.
+        intensities = pointcloud[indices][:,3]
+        intensity_map = np.zeros((target_width, target_height))
+        intensity_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = intensities
+        intensity_map /= target_width
+
+        # Compose the RGB-map.
+        rgb_map = np.zeros((target_width, target_height, 3))
+        rgb_map[:,:,0] = height_map 
+        rgb_map[:,:,1] = density_map
+        rgb_map[:,:,2] = intensity_map
+
+        return rgb_map
     
-    return rgb_map
+    elif axis=='vertical':
+    #     print('original pointcloud', original_pointcloud)
+        # Transform to pixel-space.
+        scale = np.array([target_width / scale_factor, target_width / scale_factor, target_width / scale_factor, target_width / scale_factor]) 
+        # TODO is this okay?
+        translate = np.array([target_height / 2, target_width / 2, -target_width/3, 0.0])
+        pointcloud = original_pointcloud * scale + translate
+    #     print(pointcloud[:,1:3])
+
+        # Crop the pointcloud.
+        crop_mask = np.where(
+            (pointcloud[:, 0] >= 0) & 
+            (pointcloud[:, 1] < target_width)
+            & 
+            (pointcloud[:, 2] >= 0) & 
+            (pointcloud[:, 2] < target_height)
+        )
+    #     print('crop_mask', crop_mask.shape)
+        pointcloud = pointcloud[crop_mask]
+    #     print(pointcloud.shape)
+        # Get indices and counts.
+        _, indices, counts = np.unique(pointcloud[:,[1, 2]], axis=0, return_index=True, return_counts = True)
+    #     print(indices, counts)
+
+        # Get unique pixel coordinates.
+        pixel_coordinates = np.int_(np.array([[-x, y] for _, y, x, _ in pointcloud[indices]]))
+    #     print(pixel_coordinates)
+
+        # Create the height map.
+        heights = pointcloud[indices][:,0]
+        height_map = np.zeros((target_width, target_height))
+        height_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = heights
+        height_map /= target_width
+
+        # Create the density map.
+        densities = np.minimum(1.0, np.log(counts + 1)/np.log(64))
+        density_map = np.zeros((target_width, target_height))
+        density_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = densities
+
+        # Create the intensity map.
+        intensities = pointcloud[indices][:,3]
+        intensity_map = np.zeros((target_width, target_height))
+        intensity_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = intensities
+        intensity_map /= target_width
+
+        # Compose the RGB-map.
+        rgb_map = np.zeros((target_width, target_height, 3))
+        rgb_map[:,:,0] = height_map 
+        rgb_map[:,:,1] = density_map
+        rgb_map[:,:,2] = intensity_map
+
+        return rgb_map
+    
+    else:
+        raise Exception("Unknown axis: " + axis)
+
+
+# def pointcloud_to_rgb_map(original_pointcloud, target_width=512, target_height=512, scale_factor=1.5):
+#     '''
+#     Maps a pointcloud to a RGB-image. Stores height, density and intensity as separate channels.
+#     '''
+# #     print('original pointcloud', original_pointcloud)
+#     # Transform to pixel-space.
+#     scale = np.array([target_width / scale_factor, target_width / scale_factor, target_width / scale_factor, target_width / scale_factor]) 
+#     # TODO is this okay?
+#     translate = np.array([target_height / 2, target_width / 2, -target_width/3, 0.0])
+#     pointcloud = original_pointcloud * scale + translate
+# #     print(pointcloud[:,1:3])
+    
+#     # Crop the pointcloud.
+#     crop_mask = np.where(
+#         (pointcloud[:, 0] >= 0) & 
+#         (pointcloud[:, 1] < target_width)
+#         & 
+#         (pointcloud[:, 2] >= 0) & 
+#         (pointcloud[:, 2] < target_height)
+#     )
+# #     print('crop_mask', crop_mask.shape)
+#     pointcloud = pointcloud[crop_mask]
+# #     print(pointcloud.shape)
+#     # Get indices and counts.
+#     _, indices, counts = np.unique(pointcloud[:,[1, 2]], axis=0, return_index=True, return_counts = True)
+# #     print(indices, counts)
+    
+#     # Get unique pixel coordinates.
+#     pixel_coordinates = np.int_(np.array([[-x, y] for _, y, x, _ in pointcloud[indices]]))
+# #     print(pixel_coordinates)
+
+#     # Create the height map.
+#     heights = pointcloud[indices][:,0]
+#     height_map = np.zeros((target_width, target_height))
+#     height_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = heights
+#     height_map /= target_width
+    
+#     # Create the density map.
+#     densities = np.minimum(1.0, np.log(counts + 1)/np.log(64))
+#     density_map = np.zeros((target_width, target_height))
+#     density_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = densities
+    
+#     # Create the intensity map.
+#     intensities = pointcloud[indices][:,3]
+#     intensity_map = np.zeros((target_width, target_height))
+#     intensity_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = intensities
+#     intensity_map /= target_width
+        
+#     # Compose the RGB-map.
+#     rgb_map = np.zeros((target_width, target_height, 3))
+#     rgb_map[:,:,0] = height_map 
+#     rgb_map[:,:,1] = density_map
+#     rgb_map[:,:,2] = intensity_map
+    
+#     return rgb_map
+
+    
 
 
 def show_rgb_map(rgb_map):
