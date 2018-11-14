@@ -3,6 +3,7 @@ Helper module for Neural Networks.
 """
 
 from keras import models, layers
+from keras import applications
 from keras import backend as K
 import numpy as np
 import tensorflow as tf
@@ -257,6 +258,67 @@ def create_dense_net(input_shape, output_size, hidden_sizes = []):
     model.add(layers.Dense(output_size))
     
     return model
+
+def create_2dCNN(input_shape, output_size):
+    """
+    Creates a 2dCNN.
+
+    Args:
+        input_shape (shape): Input-shape.
+        output_size (int): Output-size.
+
+    Returns:
+        Model: A model.
+    """
+
+    # Trainable params: 13,086,913
+
+    model_cnn = models.Sequential(name="2dCNN")
+    model_cnn.add(layers.Conv2D(
+        32, (3, 3),
+        activation="relu",
+        input_shape=(input_shape)))
+    model_cnn.add(layers.MaxPooling2D((2, 2)))
+    model_cnn.add(layers.Conv2D(64, (3, 3), activation="relu"))
+    model_cnn.add(layers.MaxPooling2D((2, 2)))
+    model_cnn.add(layers.Conv2D(128, (3, 3), activation="relu"))
+    model_cnn.add(layers.MaxPooling2D((2, 2)))
+    model_cnn.add(layers.Conv2D(128, (3, 3), activation="relu"))
+    model_cnn.add(layers.MaxPooling2D((2, 2)))
+    model_cnn.add(layers.Flatten())
+    model_cnn.add(layers.Dense(512, activation="relu"))
+    model_cnn.add(layers.Dropout(0.25))
+    model_cnn.add(layers.Dense(output_size, activation="relu"))
+    
+    return model_cnn
+
+def create_vgg(input_shape, output_size):
+    
+     """
+    Creates a vgg19 and add Dense Layers.
+
+    Args:
+        input_shape (shape): Input-shape.
+        output_size (int): Output-size.
+
+    Returns:
+        Model: A model.
+    """
+
+    # Trainable params: 68,229,825
+    # Non-trainable params: 20,024,384
+#     vgg19 = applications.VGG19(include_top=False, input_shape=(256, 256, 3))
+#     vgg19.trainable = False
+#     model_vgg = models.Sequential()
+#     model_vgg.add(vgg19)
+#     model_vgg.add(layers.Flatten())
+#     model_vgg.add(layers.Dense(2048, activation='relu'))
+#     model_vgg.add(layers.Dense(512, activation='relu'))
+#     model_vgg.add(layers.Dense(128, activation='relu'))
+#     model_vgg.add(layers.Dense(32, activation='relu'))
+#     model_vgg.add(layers.Dense(1, activation='relu')) #regression
+
+#     return model_vgg
 
 
 # Method for saving model and history.
