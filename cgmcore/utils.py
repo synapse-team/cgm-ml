@@ -186,11 +186,11 @@ def get_latest_model(path=".", filter=""):
     return sorted(paths)[-1]
 
 
-def pointcloud_to_rgb_map(original_pointcloud, target_width=512, target_height=512, scale_factor=1.5, axis='vertical'):
+def pointcloud_to_rgb_map(original_pointcloud, target_width=512, target_height=512, scale_factor=1.5, axis="vertical"):
     '''
     Maps a pointcloud to a RGB-image. Stores height, density and intensity as separate channels.
     '''
-    if axis=='horizontal':
+    if axis=="horizontal":
         
         # Transform to pixel-space.
         scale = np.array([target_width / scale_factor, target_width / scale_factor, target_width / scale_factor, target_width / scale_factor]) # TODO is this okay?
@@ -236,14 +236,13 @@ def pointcloud_to_rgb_map(original_pointcloud, target_width=512, target_height=5
 
         return rgb_map
     
-    elif axis=='vertical':
-    #     print('original pointcloud', original_pointcloud)
+    elif axis=="vertical":
+        
         # Transform to pixel-space.
         scale = np.array([target_width / scale_factor, target_width / scale_factor, target_width / scale_factor, target_width / scale_factor]) 
         # TODO is this okay?
         translate = np.array([target_height / 2, target_width / 2, -target_width/3, 0.0])
         pointcloud = original_pointcloud * scale + translate
-    #     print(pointcloud[:,1:3])
 
         # Crop the pointcloud.
         crop_mask = np.where(
@@ -253,16 +252,13 @@ def pointcloud_to_rgb_map(original_pointcloud, target_width=512, target_height=5
             (pointcloud[:, 2] >= 0) & 
             (pointcloud[:, 2] < target_height)
         )
-    #     print('crop_mask', crop_mask.shape)
         pointcloud = pointcloud[crop_mask]
-    #     print(pointcloud.shape)
+        
         # Get indices and counts.
         _, indices, counts = np.unique(pointcloud[:,[1, 2]], axis=0, return_index=True, return_counts = True)
-    #     print(indices, counts)
 
         # Get unique pixel coordinates.
         pixel_coordinates = np.int_(np.array([[-x, y] for _, y, x, _ in pointcloud[indices]]))
-    #     print(pixel_coordinates)
 
         # Create the height map.
         heights = pointcloud[indices][:,0]
@@ -291,12 +287,6 @@ def pointcloud_to_rgb_map(original_pointcloud, target_width=512, target_height=5
     
     else:
         raise Exception("Unknown axis: " + axis)
-
-
-
-
-    
-
 
 def show_rgb_map(rgb_map):
     '''
