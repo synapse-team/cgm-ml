@@ -19,13 +19,15 @@ log = logging.getLogger(__name__)
 
 
 class ETL:
-    def __init__(self):
+    def __init__(self, simulate=False):
         """
         read parameters from config file for pointcloud or voxelgrid
         """
         self.config = configparser.ConfigParser()
         self.data_reader = None
         self.data_writer = None
+        self.simulate = simulate
+        
 
     def initialize(self, config_path):
         self.config.read(config_path)
@@ -35,7 +37,7 @@ class ETL:
         input_type = self.config['MAIN']['input_type']
         d = datetime.datetime.now()
         runid = d.strftime('%Y_%m_%d_%H_%M_%S')
-        self.data_writer = DataWriter(self.config, runid)
+        self.data_writer = DataWriter(self.config, runid, simulate=self.simulate)
 
     def run(self):
         log.info("ETL: RUN")

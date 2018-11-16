@@ -10,6 +10,6 @@ log = logging.getLogger()
 if __name__ == '__main__':
     config_path = sys.argv[1]
     log.info("The config path is %s" % config_path)
-    etl_process = ETL()
+    etl_process = ETL(simulate="simulate" in sys.argv)
     etl_process.initialize(config_path)
     etl_process.run()

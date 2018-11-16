@@ -10,57 +10,82 @@ log = logging.getLogger(__name__)
 
 
 class DataWriter:
-    def __init__(self, config, run_id):
+    
+    def __init__(self, config, run_id, simulate=True):
         base_dir = config.get('output', 'base_dir')
         self.base_dir = base_dir
         self.run_dir = os.path.join(base_dir, run_id)
         self.run_id = run_id
+        self.simulate = simulate
         self.initialize()
 
+        
     def initialize(self):
         # create directory
-        if not os.path.exists(self.run_dir):
-            os.makedirs(self.run_dir)
+        self.makedirs_if_not_exists(self.run_dir)
 
+        
     def write(self, qrcode, y_output, timestamp, pcd_paths):
         # qr code is the name of the file
         # xinput is ndarray
         # output is the target values
         qrcode_dir = os.path.join(self.run_dir, qrcode)
-        if not os.path.exists(qrcode_dir):
-            os.makedirs(qrcode_dir)
+        self.makedirs_if_not_exists(qrcode_dir)
         subdir = os.path.join(qrcode_dir, str(timestamp))
-        if not os.path.exists(subdir):
-            os.makedirs(subdir)
-
+        self.makedirs_if_not_exists(subdir)
+        
         # target filename
         targetfilename = os.path.join(subdir, 'target.txt')
-        with open(targetfilename, "w") as outfile:
-            writer = csv.writer(outfile)
-            writer.writerow(y_output)
-
+        self.write_target(y_output, targetfilename)
+    
         pcd_dir = os.path.join(subdir, 'pcd')
-        if not os.path.exists(pcd_dir):
-            os.makedirs(pcd_dir)
+        self.makedirs_if_not_exists(pcd_dir)
+
         # copy over the pcd paths
         log.info("Copying pcd files for qrcode %s" % qrcode)
         for pcd_path in pcd_paths:
             fname = os.path.basename(pcd_path)
             dst = os.path.join(pcd_dir, fname)
-            shutil.copyfile(pcd_path, dst)
+            self.copyfile(pcd_path, dst)
 
+            
     def wrapup(self):
-        # write the readme file
-        # zip and create simlink
-        log.info("Going to zip the directory %s" % self.run_dir)
-        zipfile = os.path.join(self.base_dir, self.run_id)
-        shutil.make_archive(zipfile, 'zip', self.run_dir)
+        if self.simulate == False:
+            # write the readme file
+            # zip and create simlink
+            log.info("Going to zip the directory %s" % self.run_dir)
+            zipfile = os.path.join(self.base_dir, self.run_id)
+            shutil.make_archive(zipfile, 'zip', self.run_dir)
 
-        # check existing simlink
-        latestfilename = os.path.join(self.base_dir, 'latest.zip')
-        if os.path.exists(latestfilename):
-            os.unlink(latestfilename)
+            # check existing simlink
+            latestfilename = os.path.join(self.base_dir, 'latest.zip')
+            if os.path.exists(latestfilename):
+                os.unlink(latestfilename)
 
-        # create a simlink
-        simlinkfile = "%s.zip" % zipfile
-        os.symlink(simlinkfile, latestfilename)
+            # create a simlink
+            simlinkfile = "%s.zip" % zipfile
+            os.symlink(simlinkfile, latestfilename)
+        else:
+            print("Simulating wrapup")
+            
+    def makedirs_if_not_exists(self, path):
+        if self.simulate == False:
+            if not os.path.exists(path):
+                os.makedirs(path)
+        else:
+            print("Simulating makedirs " + path)
+
+
+    def write_target(self, target, path):
+        if self.simulate == False:
+            with open(path, "w") as outfile:
+                writer = csv.writer(outfile)
+                writer.writerow(target)
+        else:
+            print("Simulating write target" + path)
+
+    def copyfile(self, source, destination):
+        if self.simulate == False:
+            shutil.copyfile(source, destination)
+        else:
+            print("Simulating copy from", source, "to", destination)
