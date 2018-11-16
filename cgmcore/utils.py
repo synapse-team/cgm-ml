@@ -351,6 +351,25 @@ def plot_date_times(date_times, all_history_paths, start_index, end_index = 1000
     plt.legend()
     plt.show()
     plt.close()
+    
+def get_mean_error(date_times, all_history_paths, start_index, end_index = 100090, key_suffix=None):
+    for date_time in date_times:
+
+        # Load all histories for date-time.
+        history_paths = [history_path for history_path in all_history_paths if date_time in history_path]
+        histories = []
+        for history_path in history_paths:
+            history = pickle.load(open(history_path, "rb"))
+            histories.append(history)
+
+        # Print the average error of each model.
+        for history, history_path in zip(histories, history_paths):
+            split = history_path.split("/")[-1].split("-")
+            for key in history.keys():
+                if key_suffix != None and key_suffix in key:
+                    lst = history[key][start_index:end_index]
+                    avg_error = sum(lst) / len(lst)
+                    print("Avg " + key + " " + split[2] + " " + date_time + " between epoch " + str(start_index) + " and " + str(end_index) + " = " + str(avg_error))
 
     
 def find_all_history_paths(root_path):
