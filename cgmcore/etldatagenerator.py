@@ -330,7 +330,7 @@ def get_dataset_path(root_path="../data/etl"):
         # Finding the latest.
         dataset_paths = glob.glob(os.path.join(root_path, "*"))
         dataset_paths = [dataset_path for dataset_path in dataset_paths if os.path.isdir(dataset_path)]
-        dataset_path = sorted(dataset_paths)[-1]
+        dataset_path = list(reversed(sorted(dataset_paths)))[0]
 
     return dataset_path
 
