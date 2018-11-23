@@ -59,7 +59,7 @@ class ETL:
                 try:
                     targets, jpg_paths, pcd_paths, timestamp = data
                     y_output = targets
-                    self.data_writer.write(qrcode, y_output, timestamp, pcd_paths)
+                    self.data_writer.write(qrcode, y_output, timestamp, pcd_paths, jpg_paths)
                     training_samples += 1
                     log.info("Completed processing QR code %s with timestamp %s " % (qrcode, str(timestamp)))
                 except Exception as e:

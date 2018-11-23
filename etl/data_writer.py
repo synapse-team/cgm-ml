@@ -25,7 +25,7 @@ class DataWriter:
         self.makedirs_if_not_exists(self.run_dir)
 
         
-    def write(self, qrcode, y_output, timestamp, pcd_paths):
+    def write(self, qrcode, y_output, timestamp, pcd_paths, jpg_paths):
         # qr code is the name of the file
         # xinput is ndarray
         # output is the target values
@@ -37,16 +37,24 @@ class DataWriter:
         # target filename
         targetfilename = os.path.join(subdir, 'target.txt')
         self.write_target(y_output, targetfilename)
-    
-        pcd_dir = os.path.join(subdir, 'pcd')
-        self.makedirs_if_not_exists(pcd_dir)
 
         # copy over the pcd paths
+        pcd_dir = os.path.join(subdir, 'pcd')
+        self.makedirs_if_not_exists(pcd_dir)
         log.info("Copying pcd files for qrcode %s" % qrcode)
         for pcd_path in pcd_paths:
             fname = os.path.basename(pcd_path)
             dst = os.path.join(pcd_dir, fname)
             self.copyfile(pcd_path, dst)
+
+        # copy over the pcd paths
+        jpg_dir = os.path.join(subdir, 'jpg')
+        self.makedirs_if_not_exists(jpg_dir)
+        log.info("Copying jpg files for qrcode %s" % qrcode)
+        for jpg_path in jpg_paths:
+            fname = os.path.basename(jpg_path)
+            dst = os.path.join(jpg_dir, fname)
+            self.copyfile(jpg_path, dst)
 
             
     def wrapup(self):
