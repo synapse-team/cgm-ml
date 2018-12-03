@@ -26,7 +26,6 @@ def main():
     print("Dataset-path:", dataset_path)
     print("Timestamp:", timestamp)
 
-
     # Ensure path for preprocessed data. That is a folder with the timestamp.
     global preprocessed_path
     preprocessed_path = os.path.join("../data/preprocessed", timestamp)
@@ -130,7 +129,8 @@ def preprocess(qrcodes, qrcodes_dictionary):
             for pcd_path in pcd_paths:
                 try:
                     pointcloud = load_pointcloud(pcd_path)
-                    pickle_output_path = os.path.join(qrcode_path, "{}.p".format(file_index))
+                    filename = pcd_path.split("/")[-1].split(".")[0]
+                    pickle_output_path = os.path.join(qrcode_path, "{}.p".format(filename))
                     pickle.dump((pointcloud, targets), open(pickle_output_path, "wb"))
                     del pointcloud
                     file_index += 1

@@ -4,7 +4,7 @@ This script trains PointNet.
 from cgmcore import modelutils
 from cgmcore import utils
 import numpy as np
-from keras import callbacks
+from keras import callbacks, optimizers
 import pprint
 import os
 from cgmcore.preprocesseddatagenerator import get_dataset_path, create_datagenerator_from_parameters
@@ -90,8 +90,10 @@ def train_pointnet():
     model_pointnet.summary()
     
     # Compile the model.
+    #optimizer = "rmsprop"
+    optimizer = optimizers.Adagrad(lr=0.7, epsilon=None, decay=0.2)
     model_pointnet.compile(
-            optimizer="rmsprop",
+            optimizer=optimizer,
             loss="mse",
             metrics=["mae"]
         )
