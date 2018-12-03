@@ -36,6 +36,23 @@ You can install the utilities as a module:
 ```
 pip install git+https://github.com/Welthungerhilfe/cgm-ml.git
 ```
+### Installation of Point Cloud Library
+
+Steps to install pcl-1.9.0 on the virtual machines used during the datathon. Unfortunately, these steps still don't make it easy to use python-pcl due to pcl-1.7 already being present on the machines.
+
+```
+conda deactivate # get out of datathon env
+conda deactivate # get out of py35 env
+sudo apt -y install libflann1.8 libboost1.58-all-dev libeigen3-dev libproj-dev
+wget https://github.com/PointCloudLibrary/pcl/archive/pcl-1.9.0.tar.gz
+tar xvf pcl-1.9.0.tar.gz
+cd pcl-pcl-1.9.0/ && mkdir build && cd build
+cmake -DCMAKE_CXX_FLAGS="-L/usr/lib -lz" ../
+make -j2
+sudo make -j2 install
+conda activate py35
+conda activate datathon
+```
 
 ### Installation
 
