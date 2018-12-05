@@ -363,6 +363,7 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, output_queue):
                 preprocessed_path = random.choice(class_self.qrcodes_dictionary[qrcode])
                 with open(preprocessed_path, "rb") as file:
                     (pointcloud, targets) = pickle.load(file)
+                    assert pointcloud.shape[0] != 0, "Empty pointcloud in file {}.".format(preprocessed_path)
 
                 x_input = get_input(class_self, pointcloud)
                 y_output = targets
@@ -386,7 +387,12 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, output_queue):
             for preprocessed_path in preprocessed_paths:
                 with open(preprocessed_path, "rb") as file:
                     (pointcloud, targets) = pickle.load(file)
-                    x_input.append(get_input(class_self, pointcloud))
+                    assert pointcloud.shape[0] != 0, "Empty pointcloud in file {}.".format(preprocessed_path)
+                    try:
+                        x_input.append(get_input(class_self, pointcloud))
+                    except:
+                        print(pointcloud.shape, preprocessed_path)
+                        exit(0)
                     file_path.append(preprocessed_path)
             
             x_input = np.array(x_input)
@@ -427,6 +433,7 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, output_queue):
 
 
 def get_input(class_self, pointcloud):
+    
     # Get a random image.
     if class_self.input_type == "image":
         raise Exception("Not expected to work with image-data.")

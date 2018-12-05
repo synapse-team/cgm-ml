@@ -18,7 +18,7 @@ print("Using dataset path", dataset_path)
 # Hyperparameters.
 steps_per_epoch = 100
 validation_steps = 10
-epochs = 100
+epochs = 50
 batch_size = 8
 random_seed = 667
 
@@ -31,7 +31,7 @@ dataset_parameters_rgbmaps["sequence_length"] = 4
 dataset_parameters_rgbmaps["rgbmap_target_width"] = 64
 dataset_parameters_rgbmaps["rgbmap_target_height"] = 64
 dataset_parameters_rgbmaps["rgbmap_scale_factor"] = 1.0
-dataset_parameters_rgbmaps["rgbmap_axis"] = "vertical"
+dataset_parameters_rgbmaps["rgbmap_axis"] = "horizontal"
 datagenerator_instance = create_datagenerator_from_parameters(dataset_path, dataset_parameters_rgbmaps)
 
 # Get the QR-codes.
