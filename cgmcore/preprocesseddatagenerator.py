@@ -369,22 +369,29 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, output_queue):
 
         # Get the input. Dealing with sequences here.
         else:
-            assert False, "Fix this!"
-            #count = 0
-            #x_input, file_path = [], []
-            #while count != class_self.sequence_length:
-            #    preprocessed_path = random.choice(class_self.qrcodes_dictionary[qrcode])
-            #    x, f = get_input(class_self, jpg_paths, pcd_paths)
-            #    if x is not None and f is not None:
-            #        x_input.append(x)
-            #        file_path.append(f)
-            #        count += 1
-            #x_input = np.array(x_input)
-            #file_path = np.array(file_path)
+            preprocessed_paths = np.array(class_self.qrcodes_dictionary[qrcode])
+            
+            # Do not touch the QR-code if it does not have enough samples.
+            if len(preprocessed_paths) < class_self.sequence_length:
+                continue
+            
+            # Get some random indices that are in order.
+            indices = np.arange(len(preprocessed_paths))
+            np.random.shuffle(indices)
+            indices = indices[:class_self.sequence_length]
+            indices = np.sort(indices)
 
-        # Set the output.
-        #y_output = targets
-
+            preprocessed_paths = preprocessed_paths[indices]
+            x_input, file_path = [], []
+            for preprocessed_path in preprocessed_paths:
+                with open(preprocessed_path, "rb") as file:
+                    (pointcloud, targets) = pickle.load(file)
+                    x_input.append(get_input(class_self, pointcloud))
+                    file_path.append(preprocessed_path)
+            
+            x_input = np.array(x_input)
+            y_output = targets
+ 
         # Got a proper sample.
         if x_input is not None and y_output is not None:
             x_inputs.append(x_input)
