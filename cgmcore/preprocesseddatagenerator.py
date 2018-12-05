@@ -30,6 +30,7 @@ class PreprocessedDataGenerator(object):
         dataset_path,
         input_type,
         #output_targets,
+        filter=None,
         sequence_length=0,
         image_target_shape=(160, 90),
         voxelgrid_target_shape=(32, 32, 32),
@@ -72,6 +73,7 @@ class PreprocessedDataGenerator(object):
         self.dataset_path = dataset_path
         self.input_type = input_type
         #self.output_targets = output_targets
+        self.filter = filter
         self.sequence_length = sequence_length
         self.image_target_shape = image_target_shape
         self.voxelgrid_target_shape = voxelgrid_target_shape
@@ -125,8 +127,20 @@ class PreprocessedDataGenerator(object):
         
         self.qrcodes_dictionary = {}
         for qrcode in self.qrcodes:
-            self.qrcodes_dictionary[qrcode] = []
+            # Getting all files that belong to the QR-code.
             preprocessed_paths = glob.glob(os.path.join(self.dataset_path, qrcode, "*.p"))
+            
+            # Filter the paths if specified.
+            if self.filter != None:
+                if self.filter == "front":
+                    filter_for = "104"
+                elif self.filter == "360":
+                    filter_for = "107"
+                elif self.filter == "back":
+                    filter_for = "110"
+                preprocessed_paths = [path for path in preprocessed_paths if os.path.basename(path).split("_")[-2] == filter_for]
+
+            # Done.
             self.qrcodes_dictionary[qrcode] = preprocessed_paths
 
 
@@ -290,6 +304,7 @@ def create_datagenerator_from_parameters(dataset_path, dataset_parameters):
         dataset_path=dataset_path,
         input_type=dataset_parameters["input_type"],
         #output_targets=dataset_parameters["output_targets"],
+        filter=dataset_parameters.get("filter", None),
         sequence_length=dataset_parameters.get("sequence_length", 0),
         voxelgrid_target_shape=dataset_parameters.get("voxelgrid_target_shape", None),
         voxel_size_meters=dataset_parameters.get("voxel_size_meters", None),
