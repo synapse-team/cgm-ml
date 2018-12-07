@@ -134,7 +134,7 @@ class TestPreprocessedDataGenerator(unittest.TestCase):
         assert dataset[0].shape == (10, 8, 3000, 3), str(dataset[0].shape)
         assert dataset[1].shape == (10, 1), str(dataset[1].shape)
         
-    @unittest.skip("demonstrating skipping")
+    #@unittest.skip("demonstrating skipping")
     def test_sequence_rgb_map(self):
         dataset_path = get_dataset_path("../../data/preprocessed")
         print("Using dataset path:", dataset_path)
@@ -143,18 +143,21 @@ class TestPreprocessedDataGenerator(unittest.TestCase):
         dataset_parameters_rgbmaps["input_type"] = "rgbmap"
         dataset_parameters_rgbmaps["random_seed"] = 666
         dataset_parameters_rgbmaps["filter"] = "360"
-        dataset_parameters_rgbmaps["sequence_length"] = 8
+        dataset_parameters_rgbmaps["sequence_length"] = 4
         dataset_parameters_rgbmaps["rgbmap_target_width"] = 64
         dataset_parameters_rgbmaps["rgbmap_target_height"] = 64
         dataset_parameters_rgbmaps["rgbmap_scale_factor"] = 1.0
-        dataset_parameters_rgbmaps["rgbmap_axis"] = "vertical"
+        dataset_parameters_rgbmaps["rgbmap_axis"] = "horizontal"
         data_generator = create_datagenerator_from_parameters(dataset_path, dataset_parameters_rgbmaps)
         data_generator.analyze_files()
 
-        dataset = next(data_generator.generate(size=10, verbose=True))
-        assert dataset[0].shape == (10, 8, 64, 64, 3), str(dataset[0].shape)
-        assert dataset[1].shape == (10, 1), str(dataset[1].shape)
+        generator = data_generator.generate(size=10, verbose=False)
+        for _ in range(1111):
+            dataset = next(generator)
+            assert dataset[0].shape == (10, 4, 64, 64, 3), str(dataset[0].shape)
+            assert dataset[1].shape == (10, 1), str(dataset[1].shape)
         
+    @unittest.skip("demonstrating skipping")
     def test_sequence_rgb_map_stress(self):
         dataset_path = get_dataset_path("../../data/preprocessed")
         print("Using dataset path:", dataset_path)
