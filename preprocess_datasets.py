@@ -26,7 +26,6 @@ def main():
     print("Dataset-path:", dataset_path)
     print("Timestamp:", timestamp)
 
-
     # Ensure path for preprocessed data. That is a folder with the timestamp.
     global preprocessed_path
     preprocessed_path = os.path.join("../data/preprocessed", timestamp)
@@ -78,8 +77,12 @@ def main():
         p.join()
 
     # Get process results from the output queue
-    output = [output_queue.get() for p in processes]
-    print("Wrote {} files.".format(np.sum(output)))
+    sum = 0
+    for p in processes:
+        count, log = output_queue.get()
+        sum += count
+        print("\n".join(log))
+    print("Wrote {} files.".format(sum))
 
     
 def process_qrcodes_subset_multiprocessing(qrcodes_subset):
@@ -116,9 +119,9 @@ def get_qrcodes_dictionary(qrcodes):
             all_jpg_paths.extend(jpg_paths)
     return qrcodes_dictionary            
        
-    
 def preprocess(qrcodes, qrcodes_dictionary):
     count = 0
+    log = []
     bar = progressbar.ProgressBar(max_value=len(qrcodes))
     for qrcode_index, qrcode in enumerate(qrcodes):
         bar.update(qrcode_index)
@@ -130,16 +133,19 @@ def preprocess(qrcodes, qrcodes_dictionary):
             for pcd_path in pcd_paths:
                 try:
                     pointcloud = load_pointcloud(pcd_path)
-                    pickle_output_path = os.path.join(qrcode_path, "{}.p".format(file_index))
+                    if pointcloud.shape[0] < 10000:
+                        log.append("Warning: Skipping file {} because number of points is {}.".format(pcd_path, pointcloud.shape[0]))
+                        continue
+                    filename = pcd_path.split("/")[-1].split(".")[0]
+                    pickle_output_path = os.path.join(qrcode_path, "{}.p".format(filename))
                     pickle.dump((pointcloud, targets), open(pickle_output_path, "wb"))
                     del pointcloud
                     file_index += 1
                     count += 1
                 except Exception as e:
-                    print(e)
-                    print("Skipped", pcd_path, "due to error.")
+                    log.append("Skipped {} due to error. {}".format(pcd_path, e))
     bar.finish()
-    return count
+    return count, log
 
 
 def load_pointcloud(pcd_path):

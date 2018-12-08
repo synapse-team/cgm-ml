@@ -30,6 +30,7 @@ class PreprocessedDataGenerator(object):
         dataset_path,
         input_type,
         #output_targets,
+        filter=None,
         sequence_length=0,
         image_target_shape=(160, 90),
         voxelgrid_target_shape=(32, 32, 32),
@@ -72,6 +73,7 @@ class PreprocessedDataGenerator(object):
         self.dataset_path = dataset_path
         self.input_type = input_type
         #self.output_targets = output_targets
+        self.filter = filter
         self.sequence_length = sequence_length
         self.image_target_shape = image_target_shape
         self.voxelgrid_target_shape = voxelgrid_target_shape
@@ -125,8 +127,20 @@ class PreprocessedDataGenerator(object):
         
         self.qrcodes_dictionary = {}
         for qrcode in self.qrcodes:
-            self.qrcodes_dictionary[qrcode] = []
+            # Getting all files that belong to the QR-code.
             preprocessed_paths = glob.glob(os.path.join(self.dataset_path, qrcode, "*.p"))
+            
+            # Filter the paths if specified.
+            if self.filter != None:
+                if self.filter == "front":
+                    filter_for = "104"
+                elif self.filter == "360":
+                    filter_for = "107"
+                elif self.filter == "back":
+                    filter_for = "110"
+                preprocessed_paths = [path for path in preprocessed_paths if os.path.basename(path).split("_")[-2] == filter_for]
+
+            # Done.
             self.qrcodes_dictionary[qrcode] = preprocessed_paths
 
 
@@ -290,6 +304,7 @@ def create_datagenerator_from_parameters(dataset_path, dataset_parameters):
         dataset_path=dataset_path,
         input_type=dataset_parameters["input_type"],
         #output_targets=dataset_parameters["output_targets"],
+        filter=dataset_parameters.get("filter", None),
         sequence_length=dataset_parameters.get("sequence_length", 0),
         voxelgrid_target_shape=dataset_parameters.get("voxelgrid_target_shape", None),
         voxel_size_meters=dataset_parameters.get("voxel_size_meters", None),
@@ -348,28 +363,41 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, output_queue):
                 preprocessed_path = random.choice(class_self.qrcodes_dictionary[qrcode])
                 with open(preprocessed_path, "rb") as file:
                     (pointcloud, targets) = pickle.load(file)
+                    assert pointcloud.shape[0] != 0, "Empty pointcloud in file {}.".format(preprocessed_path)
 
                 x_input = get_input(class_self, pointcloud)
                 y_output = targets
 
         # Get the input. Dealing with sequences here.
         else:
-            assert False, "Fix this!"
-            #count = 0
-            #x_input, file_path = [], []
-            #while count != class_self.sequence_length:
-            #    preprocessed_path = random.choice(class_self.qrcodes_dictionary[qrcode])
-            #    x, f = get_input(class_self, jpg_paths, pcd_paths)
-            #    if x is not None and f is not None:
-            #        x_input.append(x)
-            #        file_path.append(f)
-            #        count += 1
-            #x_input = np.array(x_input)
-            #file_path = np.array(file_path)
+            preprocessed_paths = np.array(class_self.qrcodes_dictionary[qrcode])
+            
+            # Do not touch the QR-code if it does not have enough samples.
+            if len(preprocessed_paths) < class_self.sequence_length:
+                continue
+            
+            # Get some random indices that are in order.
+            indices = np.arange(len(preprocessed_paths))
+            np.random.shuffle(indices)
+            indices = indices[:class_self.sequence_length]
+            indices = np.sort(indices)
 
-        # Set the output.
-        #y_output = targets
-
+            preprocessed_paths = preprocessed_paths[indices]
+            x_input, file_path = [], []
+            for preprocessed_path in preprocessed_paths:
+                with open(preprocessed_path, "rb") as file:
+                    (pointcloud, targets) = pickle.load(file)
+                    assert pointcloud.shape[0] != 0, "Empty pointcloud in file {}.".format(preprocessed_path)
+                    try:
+                        x_input.append(get_input(class_self, pointcloud))
+                    except:
+                        print(pointcloud.shape, preprocessed_path)
+                        exit(0)
+                    file_path.append(preprocessed_path)
+            
+            x_input = np.array(x_input)
+            y_output = targets
+ 
         # Got a proper sample.
         if x_input is not None and y_output is not None:
             x_inputs.append(x_input)
@@ -405,6 +433,7 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, output_queue):
 
 
 def get_input(class_self, pointcloud):
+    
     # Get a random image.
     if class_self.input_type == "image":
         raise Exception("Not expected to work with image-data.")
