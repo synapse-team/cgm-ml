@@ -1,6 +1,7 @@
 import sys
 sys.path.insert(0, "..")
-
+import warnings
+warnings.filterwarnings("ignore")
 import argparse
 import dbconnector
 import os
@@ -226,32 +227,52 @@ def get_blur_variance(image):
     return cv2.Laplacian(image, cv2.CV_64F).var()
  
     
-def execute_command_filterpcds():
+def execute_command_filterpcds(
+    number_of_points_threshold=10000, 
+    confidence_avg_threshold=0.75, 
+    remove_errors=True, 
+    remove_rejects=True, 
+    sort_key=None, 
+    sort_reverse=False):
+    
     print("Filtering DB...")
     
     entries = db_connector.select_all(from_table="pcd_table")
-    filtered_entries = []
+    result_entries = []
     for values in entries:
         
         # Remove everything that does not have enough points.
-        if int(values["number_of_points"]) < 10000:
+        if int(values["number_of_points"]) < number_of_points_threshold:
             continue
-        filtered_entries.append(values)
+        # Remove everything that does not have a high enough average confidence.
+        if float(values["confidence_avg"]) < confidence_avg_threshold:
+            continue
+        # Remove everything that has an error.
+        if remove_errors == True and bool(values["error"]) == True:
+            continue
+        # Remove everything that has been rejected by an expert.
+        if remove_rejects == True and bool(values["rejected_by_expert"]) == True:
+            continue
+        result_entries.append(values)
         
-    return { "filtered" : filtered_entries }
+    if sort_key != None:
+        print("Sorting", sort_key, sort_reverse)
+        result_entries = list(sorted(result_entries, key=lambda x: float(x[sort_key]), reverse=sort_reverse))   
+    
+    return { "results" : result_entries }
 
         
 def execute_command_filterjpgs():
     assert False, "Implement!"
         
         
-def execute_command_sortpcds(sort_key, reverse):
+def execute_command_sortpcds(sort_key, sort_reverse):
     print("Sorting DB...")
     
     entries = db_connector.select_all(from_table="pcd_table")
-    sorted_entries = sorted(entries, key=lambda x: x[sort_key], reverse=reverse)
+    sorted_entries = sorted(entries, key=lambda x: x[sort_key], reverse=sort_reverse)
     
-    return { "sorted" : sorted_entries }
+    return { "results" : sorted_entries }
         
         
 def execute_command_sortjpgs(sort_key, reverse):
