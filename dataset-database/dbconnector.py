@@ -8,6 +8,9 @@ class AbstractDbConnector(object):
         
     def select(self, from_table, where_id):
         raise Exception("Implement!")
+    
+    def select_all(self, from_table):
+        raise Exception("Implement!")
         
     def synchronize():
         raise Exception("Implement!")
@@ -37,6 +40,9 @@ class JsonDbConnector(AbstractDbConnector):
 
     def select(self, from_table, where_id):
         return self.database["tables"][from_table].get(where_id, None)
+    
+    def select_all(self, from_table):
+        return self.database["tables"][from_table].values()
     
     def insert(self, into_table, id, values):
         self.database["tables"][into_table][id] = values

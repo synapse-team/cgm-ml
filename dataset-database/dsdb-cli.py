@@ -10,18 +10,20 @@ import datetime
 from cgmcore import utils
 import numpy as np
 import progressbar
+import cv2
+import pprint
 
     
-commands = ["init", "update"]
+commands = ["init", "update", "filterpcds", "filterjpgs", "sortpcds", "sortjpgs"]
 db_connector = dbconnector.JsonDbConnector()
 args = None
 default_etl_path = "../../data/etl/2018_10_31_14_19_42"
 
 
 def main():
-
     parse_args()
     execute_command()
+    
     
     
 # Parsing command-line arguments.
@@ -55,19 +57,39 @@ def is_dir(dirname):
 # Executing commands.
 
 def execute_command():
+    result = None
     if args.command not in commands:
         print("ERROR: Invalid command {}! Valid commands are {}.".format(args.command, commands))
         # TODO print list of commands
     elif args.command == "init":
-        execute_command_init()
+        result = execute_command_init()
     elif args.command == "update":
-        execute_command_update()
+        result = execute_command_update()
+    elif args.command == "filterpcds":
+        result = execute_command_filterpcds()
+    elif args.command == "filterjpgs":
+        result = execute_command_filterjpgs()
+    elif args.command == "sortpcds":
+        result = execute_command_sortpcds(sort_key="number_of_points", reverse=True)
+    elif args.command == "sortjpgs":
+        result = execute_command_sortjpgs()
+    else:
+        raise Exception("Unexpected {}.".format(args.command))
+        
+    if result != None:
+        if type(result) == dict:
+            #pp = pprint.PrettyPrinter(indent=4)
+            pprint.pprint(result)
+        else:
+            print(result)
+     
     
 def execute_command_init():
     print("Initializing DB...")
     db_connector.initialize()
     print("Done.")
 
+    
 def execute_command_update():
     print("Updating DB...")
     
@@ -110,6 +132,7 @@ def execute_command_update():
         if result == None:
             values = { "id": id }
             values.update(get_default_values(path))
+            values.update(get_image_values(path))
             
             db_connector.insert(into_table="jpg_table", id=id, values=values)
             insert_count += 1
@@ -120,7 +143,7 @@ def execute_command_update():
        
     db_connector.synchronize()
     print("Done.")
-  
+
 
 def get_default_values(path):
     last_updated = time.time()
@@ -134,7 +157,6 @@ def get_default_values(path):
     
     
 def get_pointcloud_values(path):
-    
     number_of_points = 0.0
     confidence_min = 0.0
     confidence_avg = 0.0
@@ -169,5 +191,72 @@ def get_pointcloud_values(path):
     values["error_message"] = error_message
     return values
 
+
+def get_image_values(path):
+    width = 0.0
+    height = 0.0
+    blur_variance = 0.0
+    error = False
+    error_message = ""
+    try:
+        image = cv2.imread(path)
+        width = image.size[0]
+        height = image.size[0]
+        blur_variance = get_blur_variance(image)
+    except Exception as e:
+        print("\n", path, e)
+        error = True
+        error_message = str(e)
+    except ValueError as e:
+        print("\n", path, e)
+        error = True
+        error_message = str(e)
+
+    values = {}
+    values["width"] = width
+    values["height"] = height
+    values["blur_variance"] = blur_variance
+    values["error"] = error
+    values["error_message"] = error_message
+    return values
+    
+    
+def get_blur_variance(image):
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    return cv2.Laplacian(image, cv2.CV_64F).var()
+ 
+    
+def execute_command_filterpcds():
+    print("Filtering DB...")
+    
+    entries = db_connector.select_all(from_table="pcd_table")
+    filtered_entries = []
+    for values in entries:
+        
+        # Remove everything that does not have enough points.
+        if int(values["number_of_points"]) < 10000:
+            continue
+        filtered_entries.append(values)
+        
+    return { "filtered" : filtered_entries }
+
+        
+def execute_command_filterjpgs():
+    assert False, "Implement!"
+        
+        
+def execute_command_sortpcds(sort_key, reverse):
+    print("Sorting DB...")
+    
+    entries = db_connector.select_all(from_table="pcd_table")
+    sorted_entries = sorted(entries, key=lambda x: x[sort_key], reverse=reverse)
+    
+    return { "sorted" : sorted_entries }
+        
+        
+def execute_command_sortjpgs(sort_key, reverse):
+    assert False, "Implement!"
+        
+        
 if __name__ == "__main__":
     main()
